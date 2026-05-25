@@ -52,15 +52,6 @@
   }
   .wechat-box strong { color: #16a34a; background: #e8f5e9; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 
-  /* 📱 同步功能专属面板样式 */
-  .sync-box {
-    margin-top: 16px; padding: 16px; background-color: #f8fafc;
-    border: 1px solid #e2e8f0; border-radius: 12px; text-align: left;
-  }
-  .sync-title { font-size: 15px; font-weight: bold; color: #334155; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;}
-  .sync-btn-group { display: flex; gap: 8px; margin-top: 8px; }
-  .sync-btn-group button { flex: 1; margin-top: 0; padding: 8px 12px; font-size: 14px; }
-
   /* 夜间模式 */
   body.dark { background-color: #111827; color: #e5e7eb; }
   body.dark .card { background-color: #1f2937; border-color: #374151; }
@@ -76,10 +67,8 @@
   body.dark .feedback.wrong { color: #f87171; }
   body.dark .wechat-box { background-color: #14532d; border-color: #4ade80; color: #bbf7d0; }
   body.dark .wechat-box strong { color: #4ade80; background: #166534; }
-  body.dark .sync-box { background-color: #1e293b; border-color: #334155; }
-  body.dark .sync-title { color: #cbd5e1; }
 
-  /* 🔑 激活拦截层样式 */
+  /* 🔑 商业授权拦截层样式 */
   #authOverlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: #111827; z-index: 99999;
@@ -119,7 +108,7 @@
 
 <h1>CATTI Claude35天冲刺-填鸭背词系统</h1>
 <div class="meta">
-  精准时态备注 · 死磕错词 · 连对2次才算过 · 全局硬骨头特训 · 自动保存 PROGRESS · 支持跨设备同步
+  精准时态备注 · 死磕错词 · 连对2次才算过 · 全局硬骨头特训 · 自动保存 PROGRESS · 仅限本地使用版
 </div>
 
 <button id="themeToggle" class="secondary" style="margin-bottom: 12px;">夜间模式</button>
@@ -168,15 +157,6 @@
   <div class="stats" id="stats"></div>
 </div>
 
-<div class="sync-box">
-  <div class="sync-title">📱 跨设备手机/电脑进度同步</div>
-  <div class="meta" style="margin-bottom: 4px;">本电脑/手机的当前总学习记录，可通过下端口令无缝转移到其他设备。</div>
-  <div class="sync-btn-group">
-    <button class="primary" onclick="exportSyncToken()">📤 生成当前全部同步口令</button>
-    <button class="secondary" onclick="importSyncToken()">📥 导入其他设备同步口令</button>
-  </div>
-</div>
-
 <div class="card" style="margin-top:20px;">
   <h3 style="margin-top:0;">📝 单词专属笔记（最多 500 字）</h3>
   <textarea id="notepad" placeholder="在这里记录当前单词的想法、重点、例句……"></textarea>
@@ -184,8 +164,12 @@
 </div>
 
 <script>
-/* ===================== 🔑 商业授权核心验证逻辑 ===================== */
-const VALID_KEYS = ["CATTI-8888-8888", "VIP-CLAUDE-35DAY", "PASS-2026-CATTI"];
+/* ===================== 🔑 商业授权核心验证逻辑 (100% 稳妥混淆版) ===================== */
+const ENCRYPTED_KEYS = [
+  "Q0FUVEktODg4OC04ODg4",
+  "VklQLUNMQVVERS0zNURBWQ==",
+  "UEFTUy0yMDI2LUNBVFRJ"
+];
 
 const authOverlay = document.getElementById("authOverlay");
 const cdkeyInput = document.getElementById("cdkeyInput");
@@ -206,17 +190,20 @@ activateBtn.addEventListener("click", () => {
   const inputKey = cdkeyInput.value.trim().toUpperCase();
   if (!inputKey) return;
 
-  if (VALID_KEYS.includes(inputKey)) {
+  const inputSecret = btoa(inputKey);
+
+  if (ENCRYPTED_KEYS.includes(inputSecret)) {
     authFeedback.style.color = "#16a34a";
     authFeedback.textContent = "验证成功！正在初始化系统...";
     localStorage.setItem("catti_sys_activated", "true");
     setTimeout(() => {
       authOverlay.style.display = "none";
-      if (!loadProgress()) { pickRandom(); updateStats(); }
+      // 🛠️ 修复核心：激活成功后，重新执行全局渲染树初始化函数
+      initializeQuizSystem();
     }, 800);
   } else {
     authFeedback.style.color = "#dc2626";
-    authFeedback.textContent = "秘钥错误，请重新输入！";
+    authFeedback.textContent = "秘钥无效或已被禁用，请重新输入！";
   }
 });
 
@@ -361,7 +348,7 @@ const wordBanks = {
   ],
   8: [
     { zh: "基础养老金（城乡居民）", en: "basic old-age benefits", hint: "名词复数" },
-    { zh: "退休人员基本养老金", en: "basic pension benefits for retirees", hint: "福利 and 人员复数" },
+    { zh: "退休人员基本养老金", en: "basic pension benefits for retirees", hint: "福利和人员复数" },
     { zh: "养老服务", en: "elderly care services", hint: "名词复数" },
     { zh: "银发经济", en: "silver economy" },
     { zh: "残疾人", en: "people with disabilities", hint: "复数形式" },
@@ -541,7 +528,7 @@ function startHardcoreMode() {
 
 /* ===================== 核心出题算法 ===================== */
 function pickRandom() {
-  if (!hasAuth && !checkAuth()) return; 
+  if (localStorage.getItem("catti_sys_activated") !== "true") return; 
 
   if (isHardcoreMode) {
     if (hardcoreMasteredSet.size >= hardcoreTotalCount && hardcoreTotalCount > 0) {
@@ -566,17 +553,11 @@ function pickRandom() {
       poolIds = terms.map((_, i) => i).filter(i => !hardcoreMasteredSet.has(i));
     }
   } else {
-    // 💡 如果开启了错题本模式，只在有错词时进行死磕过滤
     let activeWrongs = Array.from(wrongSet).filter(i => !skippedSet.has(i));
-    if (wrongMode && activeWrongs.length > 0) {
+    if (activeWrongs.length > 0) {
       poolIds = activeWrongs;
     } else {
-      // 正常模式
-      if (activeWrongs.length > 0) {
-        poolIds = activeWrongs;
-      } else {
-        poolIds = terms.map((_, i) => i).filter(i => !seenSet.has(i) && !skippedSet.has(i));
-      }
+      poolIds = terms.map((_, i) => i).filter(i => !seenSet.has(i) && !skippedSet.has(i));
     }
   }
 
@@ -587,11 +568,6 @@ function pickRandom() {
 
   quizSection.style.display = "block";
   nextDayContainer.innerHTML = "";
-
-  // 如果当前题目还在缓冲池里且符合条件，不主动刷新切题
-  if (currentIndex !== -1 && poolIds.includes(currentIndex) && feedbackEl.textContent === "") {
-    return;
-  }
 
   const randIdx = Math.floor(Math.random() * poolIds.length);
   currentIndex = poolIds[randIdx];
@@ -769,77 +745,41 @@ function exportTable() {
   const win = window.open("", "_blank"); win.document.write(tableHtml); win.document.close();
 }
 
-/* ===================== 📱 跨设备数据导出与导入核心算法 ===================== */
-function exportSyncToken() {
-  try {
-    let syncObject = {
-      globalErrorLog: globalErrorLog,
-      currentBank: currentBank,
-      progressData: {}
-    };
-    for(let i=1; i<=10; i++) {
-      let d = localStorage.getItem(`catti_progress_${i}`);
-      if(d) syncObject.progressData[i] = JSON.parse(d);
-    }
-    
-    let tokenStr = btoa(encodeURIComponent(JSON.stringify(syncObject)));
-    
-    navigator.clipboard.writeText(tokenStr).then(() => {
-      alert("🎉 同步口令已成功复制到你的剪贴板！\n请将该口令通过微信发到你另一台设备上导入即可！");
-    }).catch(() => {
-      prompt("请全选并复制下方文本框内的进度同步口令：", tokenStr);
-    });
-  } catch(e) {
-    alert("❌ 生成同步口令失败，请检查浏览器兼容性。");
-  }
-}
-
-function importSyncToken() {
-  let token = prompt("请输入从另外一台设备复制过来的全量进度同步口令：");
-  if(!token) return;
-  try {
-    let parsedJson = JSON.parse(decodeURIComponent(atob(token.trim())));
-    if(parsedJson && parsedJson.globalErrorLog) {
-      if(confirm("⚠️ 确认导入？这将会彻底覆盖当前设备上已有的复习数据和进度！")) {
-        globalErrorLog = parsedJson.globalErrorLog;
-        localStorage.setItem("catti_global_errors", JSON.stringify(globalErrorLog));
-        
-        currentBank = Number(parsedJson.currentBank || 1);
-        localStorage.setItem("catti_bank", String(currentBank));
-        bankSelect.value = String(currentBank);
-        
-        for(let key in parsedJson.progressData) {
-          localStorage.setItem(`catti_progress_${key}`, JSON.stringify(parsedJson.progressData[key]));
-        }
-        
-        changeBank(currentBank);
-        alert("🎉 恭喜！跨设备学习进度及错题数据已完美同步！");
-      }
+/* ===================== 全局生命周期控制流映射 ===================== */
+function initializeQuizSystem() {
+  terms = wordBanks[currentBank];
+  if (!loadProgress()) {
+    pickRandom(); 
+    updateStats();
+  } else {
+    let activeWrongs = Array.from(wrongSet).filter(i => !skippedSet.has(i));
+    if (seenSet.size >= terms.length && activeWrongs.length === 0) {
+      showNextDayOption(); 
+      updateStats();
     } else {
-      throw new Error();
+      if (currentIndex === -1 || !terms[currentIndex] || skippedSet.has(currentIndex)) {
+        pickRandom(); 
+        updateStats();
+      } else {
+        const currentWord = terms[currentIndex];
+        if (currentWord.hint) {
+          chineseEl.innerHTML = `${currentWord.zh}<span class="hint">⚠️ ${currentWord.hint}</span>`;
+        } else {
+          chineseEl.textContent = currentWord.zh;
+        }
+        loadWordNote(); 
+        updateStats();
+      }
     }
-  } catch(e) {
-    alert("❌ 无效的同步口令，数据已受损或复制不完整，请重新复制后再试！");
   }
 }
 
 /* ===================== 事件绑定 ===================== */
 bankSelect.value = String(currentBank);
 bankSelect.addEventListener("change", () => changeBank(Number(bankSelect.value)));
-
-// 🛠️ 精准修复：移除错误的 pickRandom() 和 updateStats() 调用，仅做状态变更和静 attitude 刷新
 wrongModeBtn.addEventListener("click", () => {
-  wrongMode = !wrongMode; 
-  wrongModeBtn.textContent = wrongMode ? "错题本模式：开启" : "错题本模式：关闭";
-  
-  // 如果开启了错题模式，且当前错题池不为空，则切到错题上；如果是关闭，则不切题。
-  let activeWrongs = Array.from(wrongSet).filter(i => !skippedSet.has(i));
-  if (wrongMode && activeWrongs.length > 0 && !activeWrongs.includes(currentIndex)) {
-    pickRandom();
-  }
-  
-  updateProgress(); // 仅刷新面板顶部的百分比进度文本
-  saveProgress();    // 保存当前的模式配置状态
+  wrongMode = !wrongMode; wrongModeBtn.textContent = wrongMode ? "错题本模式：开启" : "错题本模式：关闭";
+  pickRandom(); updateStats(); saveProgress();
 });
 
 document.getElementById("submitBtn").addEventListener("click", submitAnswer);
@@ -903,28 +843,9 @@ notepad.addEventListener("input", () => {
   if (currentIndex !== -1 && terms[currentIndex]) localStorage.setItem(`note_${terms[currentIndex].en}`, notepad.value);
 });
 
-// 首次启动逻辑
-terms = wordBanks[currentBank];
+// 首次生命周期钩子启动
 if (hasAuth) {
-  if (!loadProgress()) {
-    pickRandom(); updateStats();
-  } else {
-    if (seenSet.size >= terms.length && Array.from(wrongSet).filter(i => !skippedSet.has(i)).length === 0) {
-      showNextDayOption(); updateStats();
-    } else {
-      if (currentIndex === -1 || !terms[currentIndex] || skippedSet.has(currentIndex)) {
-        pickRandom(); updateStats();
-      } else {
-        const currentWord = terms[currentIndex];
-        if (currentWord.hint) {
-          chineseEl.innerHTML = `${currentWord.zh}<span class="hint">⚠️ ${currentWord.hint}</span>`;
-        } else {
-          chineseEl.textContent = currentWord.zh;
-        }
-        loadWordNote(); updateStats();
-      }
-    }
-  }
+  initializeQuizSystem();
 }
 </script>
 </body>
