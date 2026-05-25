@@ -818,7 +818,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Enter" && active === inputEl) submitAnswer();
   if (e.key === "/" && !isTyping) { e.preventDefault(); document.getElementById("idkBtn").click(); }
   if (e.key === "." && !isTyping) { e.preventDefault(); document.getElementById("speakBtn").click(); }
-  if (e.shiftKey && (e.key === "S" || e.key === "s")) { e.preventDefault(); skipCurrentWord(); }
+  if (e.shiftKey && (e.key === "S" || e.key === "s") && !isTyping) { e.preventDefault(); skipCurrentWord(); }
 });
 
 function saveProgress() {
