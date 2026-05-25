@@ -226,7 +226,7 @@ const wordBanks = {
     { zh: "宏观调控", en: "macro regulation" },
     { zh: "积极的财政政策", en: "proactive fiscal policy" },
     { zh: "适度宽松的货币政策", en: "appropriately accommodative monetary policy" },
-    { zh: "扩大内需", en: "boosting, expanding domestic demand", hint: "斜杠隔开" },
+    { zh: "扩大内需", en: "boosting/expanding domestic demand", hint: "斜杠隔开" },
     { zh: "有效投资", en: "effective investment" },
     { zh: "国内生产总值", en: "gross domestic product (GDP)", hint: "带括号简写" },
     { zh: "居民消费价格指数", en: "consumer price index (CPI)", hint: "带括号简写" },
@@ -241,7 +241,7 @@ const wordBanks = {
     { zh: "全国统一大市场", en: "unified national market" },
     { zh: "公平竞争审查", en: "fair competition review" },
     { zh: "营商环境", en: "business environment" },
-    { zh: "民营经济", en: "private sector , private economy", hint: "空格逗号隔开" },
+    { zh: "民营经济", en: "private sector / private economy", hint: "空格斜杠隔开" },
     { zh: "国有企业改革", en: "reform of state-owned enterprises (SOEs)", hint: "带括号复数" },
     { zh: "高水平对外开放", en: "high-standard opening up" },
     { zh: "跨境服务贸易负面清单", en: "negative list for cross-border trade in services" },
@@ -812,8 +812,8 @@ document.getElementById("themeToggle").addEventListener("click", () => {
 document.addEventListener("keydown", e => {
   if (document.activeElement === notepad) return;
   if (e.key === "Enter" && document.activeElement === inputEl) submitAnswer();
-  if (e.key === "/" && document.activeElement === inputEl) { e.preventDefault(); document.getElementById("idkBtn").click(); }
-  if (e.key === "." && document.activeElement === inputEl) { e.preventDefault(); document.getElementById("speakBtn").click(); }
+  if (e.key === "/" && document.activeElement === inputEl && inputEl.value.trim() === "") { e.preventDefault(); document.getElementById("idkBtn").click(); }
+  if (e.key === "." && document.activeElement === inputEl && inputEl.value.trim() === "") { e.preventDefault(); document.getElementById("speakBtn").click(); }
   if (e.shiftKey && (e.key === "S" || e.key === "s")) { e.preventDefault(); skipCurrentWord(); }
 });
 
