@@ -759,12 +759,32 @@ function showNextDayOption() {
 }
 
 function exportTable() {
-  let tableHtml = `<h2>学习结果表</h2><table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:14px;"><tr><th>中文</th><th>英文</th><th>历史错误</th></tr>`;
+  // Collect all notes from localStorage
+  const notes = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key.startsWith("note_")) {
+      const wordKey = key.slice(5); // strip "note_"
+      const val = localStorage.getItem(key);
+      if (val && val.trim()) notes[wordKey] = val.trim();
+    }
+  }
+  const hasNotes = Object.keys(notes).length > 0;
+  const noteHeader = hasNotes ? "<th>我的笔记</th>" : "";
+  let tableHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>学习结果表</title>
+    <style>body{font-family:sans-serif;padding:20px;}table{border-collapse:collapse;width:100%;font-size:14px;}
+    th{background:#2563eb;color:white;padding:8px;}td{padding:8px;border:1px solid #ddd;vertical-align:top;}
+    tr:nth-child(even){background:#f9fafb;}.note{color:#374151;white-space:pre-wrap;}.err{color:#dc2626;font-weight:bold;}
+    h2{color:#111827;}</style></head><body>
+    <h2>📚 CATTI 学习结果表</h2>
+    <table><tr><th>中文</th><th>英文</th><th>历史错误</th>${noteHeader}</tr>`;
   terms.forEach((item) => {
     let errTimes = globalErrorLog[item.en] || 0;
-    tableHtml += `<tr><td>${item.zh} [${item.hint || '无'}]</td><td>${item.en}</td><td>${errTimes} 次</td></tr>`;
+    const noteCell = hasNotes ? `<td class="note">${(notes[item.en] || "").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</td>` : "";
+    const errClass = errTimes > 0 ? ' class="err"' : "";
+    tableHtml += `<tr><td>${item.zh}${item.hint ? ` <small>[${item.hint}]</small>` : ""}</td><td>${item.en}</td><td${errClass}>${errTimes} 次</td>${noteCell}</tr>`;
   });
-  tableHtml += `</table>`;
+  tableHtml += `</table></body></html>`;
   const win = window.open("", "_blank"); win.document.write(tableHtml); win.document.close();
 }
 
