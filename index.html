@@ -810,10 +810,14 @@ document.getElementById("themeToggle").addEventListener("click", () => {
 });
 
 document.addEventListener("keydown", e => {
-  if (document.activeElement === notepad) return;
-  if (e.key === "Enter" && document.activeElement === inputEl) submitAnswer();
-  if (e.key === "/" && document.activeElement === inputEl && inputEl.value.trim() === "") { e.preventDefault(); document.getElementById("idkBtn").click(); }
-  if (e.key === "." && document.activeElement === inputEl && inputEl.value.trim() === "") { e.preventDefault(); document.getElementById("speakBtn").click(); }
+  const active = document.activeElement;
+  const isTyping = (active === inputEl && inputEl.value.trim() !== "");
+  const isOtherInput = (active !== inputEl && active !== document.body && active.tagName !== "BUTTON");
+  if (active === notepad) return;
+  if (isOtherInput) return;
+  if (e.key === "Enter" && active === inputEl) submitAnswer();
+  if (e.key === "/" && !isTyping) { e.preventDefault(); document.getElementById("idkBtn").click(); }
+  if (e.key === "." && !isTyping) { e.preventDefault(); document.getElementById("speakBtn").click(); }
   if (e.shiftKey && (e.key === "S" || e.key === "s")) { e.preventDefault(); skipCurrentWord(); }
 });
 
