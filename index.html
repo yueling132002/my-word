@@ -79,7 +79,7 @@
   body.dark .sync-box { background-color: #1e293b; border-color: #334155; }
   body.dark .sync-title { color: #cbd5e1; }
 
-  /* 🔑 商业授权拦截层样式 */
+  /* 🔑 激活拦截层样式 */
   #authOverlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: #111827; z-index: 99999;
@@ -184,12 +184,9 @@
 </div>
 
 <script>
-/* ===================== 🔑 商业授权核心验证逻辑 (100% 稳妥混淆版) ===================== */
-const ENCRYPTED_KEYS = [
-  "Q0FUVEktODg4OC04ODg4",
-  "VklQLUNMQVVERS0zNURBWQ==",
-  "UEFTUy0yMDI2LUNBVFRJ"
-];
+/* ===================== 🔑 商业授权核心验证逻辑 ===================== */
+// 支持的全部激活码，在这里直接明文配置，百分百防止转换报错
+const VALID_KEYS = ["CATTI-8888-8888", "VIP-CLAUDE-35DAY", "PASS-2026-CATTI"];
 
 const authOverlay = document.getElementById("authOverlay");
 const cdkeyInput = document.getElementById("cdkeyInput");
@@ -207,12 +204,10 @@ function checkAuth() {
 }
 
 activateBtn.addEventListener("click", () => {
-  const inputKey = cdkeyInput.value.trim().toUpperCase();
+  const inputKey = cdkeyInput.value.trim().toUpperCase(); // 自动转为大写、去掉空格防止买家输错
   if (!inputKey) return;
 
-  const inputSecret = btoa(inputKey);
-
-  if (ENCRYPTED_KEYS.includes(inputSecret)) {
+  if (VALID_KEYS.includes(inputKey)) {
     authFeedback.style.color = "#16a34a";
     authFeedback.textContent = "验证成功！正在初始化系统...";
     localStorage.setItem("catti_sys_activated", "true");
@@ -222,7 +217,7 @@ activateBtn.addEventListener("click", () => {
     }, 800);
   } else {
     authFeedback.style.color = "#dc2626";
-    authFeedback.textContent = "秘钥无效或已被禁用，请重新输入！";
+    authFeedback.textContent = "秘钥错误，请重新输入！";
   }
 });
 
@@ -772,20 +767,16 @@ function exportSyncToken() {
       currentBank: currentBank,
       progressData: {}
     };
-    // 循环提取10个单元的所有刷词进度记录
     for(let i=1; i<=10; i++) {
       let d = localStorage.getItem(`catti_progress_${i}`);
       if(d) syncObject.progressData[i] = JSON.parse(d);
     }
     
-    // 转为混淆字符串实现纯前端跨端无感转移
     let tokenStr = btoa(encodeURIComponent(JSON.stringify(syncObject)));
     
-    // 写入剪贴板
     navigator.clipboard.writeText(tokenStr).then(() => {
       alert("🎉 同步口令已成功复制到你的剪贴板！\n请将该口令通过微信发到你另一台设备上导入即可！");
     }).catch(() => {
-      // 容错处理：若部分移动端浏览器封禁剪贴板权限，则弹窗供用户手动复制
       prompt("请全选并复制下方文本框内的进度同步口令：", tokenStr);
     });
   } catch(e) {
@@ -800,21 +791,17 @@ function importSyncToken() {
     let parsedJson = JSON.parse(decodeURIComponent(atob(token.trim())));
     if(parsedJson && parsedJson.globalErrorLog) {
       if(confirm("⚠️ 确认导入？这将会彻底覆盖当前设备上已有的复习数据和进度！")) {
-        // 同步全局错题历史
         globalErrorLog = parsedJson.globalErrorLog;
         localStorage.setItem("catti_global_errors", JSON.stringify(globalErrorLog));
         
-        // 同步当前所属章节
         currentBank = Number(parsedJson.currentBank || 1);
         localStorage.setItem("catti_bank", String(currentBank));
         bankSelect.value = String(currentBank);
         
-        // 恢复10天所有的学习进度断点
         for(let key in parsedJson.progressData) {
           localStorage.setItem(`catti_progress_${key}`, JSON.stringify(parsedJson.progressData[key]));
         }
         
-        // 重新唤醒当前页面视图
         changeBank(currentBank);
         alert("🎉 恭喜！跨设备学习进度及错题数据已完美同步！");
       }
@@ -886,38 +873,4 @@ function loadProgress() {
     wrongMode = data.wrongMode ?? false;
     wrongModeBtn.textContent = wrongMode ? "错题本模式：开启" : "错题本模式：关闭";
     return true;
-  } catch (e) { return false; }
-}
-
-notepad.addEventListener("input", () => {
-  if (notepad.value.length > 500) notepad.value = notepad.value.slice(0, 500);
-  updateNoteCount();
-  if (currentIndex !== -1 && terms[currentIndex]) localStorage.setItem(`note_${terms[currentIndex].en}`, notepad.value);
-});
-
-// 首次启动逻辑：优先验证授权，验证通过才初始化常规词库
-terms = wordBanks[currentBank];
-if (hasAuth) {
-  if (!loadProgress()) {
-    pickRandom(); updateStats();
-  } else {
-    if (seenSet.size >= terms.length && Array.from(wrongSet).filter(i => !skippedSet.has(i)).length === 0) {
-      showNextDayOption(); updateStats();
-    } else {
-      if (currentIndex === -1 || !terms[currentIndex] || skippedSet.has(currentIndex)) {
-        pickRandom(); updateStats();
-      } else {
-        const currentWord = terms[currentIndex];
-        if (currentWord.hint) {
-          chineseEl.innerHTML = `${currentWord.zh}<span class="hint">⚠️ ${currentWord.hint}</span>`;
-        } else {
-          chineseEl.textContent = currentWord.zh;
-        }
-        loadWordNote(); updateStats();
-      }
-    }
-  }
-}
-</script>
-</body>
-</html>
+  } catch (e) { return false; }\n}\n\nnotepad.addEventListener("input", () => {\n  if (notepad.value.length > 500) notepad.value = notepad.value.slice(0, 500);\n  updateNoteCount();\n  if (currentIndex !== -1 && terms[currentIndex]) localStorage.setItem(`note_${terms[currentIndex].en}`, notepad.value);\n});\n\n// 首次启动逻辑\nterms = wordBanks[currentBank];\nif (hasAuth) {\n  if (!loadProgress()) {\n    pickRandom(); updateStats();\n  } else {\n    if (seenSet.size >= terms.length && Array.from(wrongSet).filter(i => !skippedSet.has(i)).length === 0) {\n      showNextDayOption(); updateStats();\n    } else {\n      if (currentIndex === -1 || !terms[currentIndex] || skippedSet.has(currentIndex)) {\n        pickRandom(); updateStats();\n      } else {\n        const currentWord = terms[currentIndex];\n        if (currentWord.hint) {\n          chineseEl.innerHTML = `${currentWord.zh}<span class=\"hint\">⚠️ ${currentWord.hint}</span>`;\n        } else {\n          chineseEl.textContent = currentWord.zh;\n        }\n        loadWordNote(); updateStats();\n      }\n    }\n  }\n}\n</script>\n</body>\n</html>
