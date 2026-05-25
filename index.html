@@ -145,6 +145,7 @@
     <div style="margin-top:10px;">
       <button class="primary" id="submitBtn">提交答案（Enter）</button>
       <button class="secondary" id="idkBtn">我不知道（/）</button>
+      <button class="secondary" id="prevBtn" disabled>⬅️ 上一题（←）</button>
       <button class="secondary" id="nextBtn">下一题</button>
       <button class="secondary" id="speakBtn">🔊 朗读英文（.）</button>
       <button class="warning" id="skipBtn">🚫 今天不背了（Shift+S）</button>
@@ -437,6 +438,7 @@ let currentIndex = -1;
 let total = 0;
 let correct = 0;
 let wrongMode = false;
+let wordHistory = []; // stack of previous indices
 
 let hardcoreTotalCount = 0; 
 let hardcoreMasteredSet = new Set(); 
@@ -571,6 +573,7 @@ function pickRandom() {
   quizSection.style.display = "block";
   nextDayContainer.innerHTML = "";
 
+  if (currentIndex !== -1) wordHistory.push(currentIndex);
   const randIdx = Math.floor(Math.random() * poolIds.length);
   currentIndex = poolIds[randIdx];
 
@@ -587,8 +590,26 @@ function pickRandom() {
 
   if (!isHardcoreMode) seenSet.add(currentIndex);
   loadWordNote();
+  document.getElementById("prevBtn").disabled = wordHistory.length === 0;
   updateProgress();
 }
+function prevWord() {
+  if (wordHistory.length === 0) return;
+  currentIndex = wordHistory.pop();
+  const currentWord = terms[currentIndex];
+  if (currentWord.hint) {
+    chineseEl.innerHTML = `${currentWord.zh}<span class="hint">⚠️ ${currentWord.hint}</span>`;
+  } else {
+    chineseEl.textContent = currentWord.zh;
+  }
+  inputEl.value = "";
+  inputEl.focus();
+  feedbackEl.textContent = "";
+  loadWordNote();
+  updateProgress();
+  document.getElementById("prevBtn").disabled = wordHistory.length === 0;
+}
+
 
 function updateStats() {
   const rate = total === 0 ? 0 : ((correct / total) * 100).toFixed(1);
@@ -786,6 +807,7 @@ wrongModeBtn.addEventListener("click", () => {
 
 document.getElementById("submitBtn").addEventListener("click", submitAnswer);
 document.getElementById("nextBtn").addEventListener("click", () => { pickRandom(); saveProgress(); });
+document.getElementById("prevBtn").addEventListener("click", () => { prevWord(); saveProgress(); });
 document.getElementById("idkBtn").addEventListener("click", () => {
   if (currentIndex === -1) return;
   speakText(terms[currentIndex].en, "en-US");
@@ -819,6 +841,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "/" && !isTyping) { e.preventDefault(); document.getElementById("idkBtn").click(); }
   if (e.key === "." && !isTyping) { e.preventDefault(); document.getElementById("speakBtn").click(); }
   if (e.shiftKey && (e.key === "S" || e.key === "s") && !isTyping) { e.preventDefault(); skipCurrentWord(); }
+  if (e.key === "ArrowLeft" && !isTyping) { e.preventDefault(); prevWord(); }
 });
 
 function saveProgress() {
