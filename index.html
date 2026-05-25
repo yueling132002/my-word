@@ -849,6 +849,92 @@ notepad.addEventListener("input", () => {
 if (hasAuth) {
   initializeQuizSystem();
 }
+
+/* ===================== 📱 跨设备进度同步 ===================== */
+function gatherAllData() {
+  const snapshot = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    snapshot[key] = localStorage.getItem(key);
+  }
+  return snapshot;
+}
+
+function generateSyncCode() {
+  const feedbackEl = document.getElementById("syncFeedback");
+  try {
+    const data = gatherAllData();
+    const json = JSON.stringify(data);
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    const output = document.getElementById("syncOutput");
+    output.value = encoded;
+    output.style.display = "block";
+    navigator.clipboard.writeText(encoded).then(() => {
+      feedbackEl.style.color = "#16a34a";
+      feedbackEl.textContent = "✅ 口令已生成并自动复制！在其他设备粘贴导入即可。";
+    }).catch(() => {
+      feedbackEl.style.color = "#2563eb";
+      feedbackEl.textContent = "✅ 口令已生成！请手动全选复制上方文本框内容。";
+    });
+  } catch(e) {
+    feedbackEl.style.color = "#dc2626";
+    feedbackEl.textContent = "❌ 生成失败：" + e.message;
+  }
+}
+
+function importSyncCode() {
+  const feedbackEl = document.getElementById("syncFeedback");
+  const input = document.getElementById("syncInput").value.trim();
+  if (!input) {
+    feedbackEl.style.color = "#dc2626";
+    feedbackEl.textContent = "❌ 请先粘贴同步口令！";
+    return;
+  }
+  try {
+    const json = decodeURIComponent(escape(atob(input)));
+    const data = JSON.parse(json);
+    // Validate it looks like our data
+    if (!data["catti_sys_activated"]) {
+      feedbackEl.style.color = "#dc2626";
+      feedbackEl.textContent = "❌ 口令无效或已损坏，请重新生成。";
+      return;
+    }
+    // Confirm before overwriting
+    if (!confirm("⚠️ 导入将覆盖本设备上的所有进度数据，确认继续？")) return;
+    localStorage.clear();
+    for (const [key, value] of Object.entries(data)) {
+      localStorage.setItem(key, value);
+    }
+    feedbackEl.style.color = "#16a34a";
+    feedbackEl.textContent = "✅ 进度同步成功！正在重新加载...";
+    setTimeout(() => location.reload(), 1000);
+  } catch(e) {
+    feedbackEl.style.color = "#dc2626";
+    feedbackEl.textContent = "❌ 解析失败，口令可能不完整：" + e.message;
+  }
+}
 </script>
+
+<div class="card" style="margin-top:20px;">
+  <h3 style="margin-top:0;">📱 跨设备进度同步</h3>
+  <p style="font-size:14px; color:#555; margin-bottom:14px;">
+    换设备时使用。电脑上生成口令 → 复制 → 手机上粘贴导入，即可完整还原所有进度、错题和笔记。
+  </p>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <button class="primary" onclick="generateSyncCode()" style="flex:1; min-width:140px;">📤 生成同步口令</button>
+    <button class="secondary" onclick="document.getElementById('importArea').style.display='block'" style="flex:1; min-width:140px;">📥 导入同步口令</button>
+  </div>
+
+  <textarea id="syncOutput" placeholder="口令将显示在这里..." style="display:none; margin-top:12px; height:100px; font-size:12px; font-family:monospace; word-break:break-all;"></textarea>
+
+  <div id="importArea" style="display:none; margin-top:12px;">
+    <textarea id="syncInput" placeholder="请将口令粘贴到这里..." style="height:100px; font-size:12px; font-family:monospace; word-break:break-all;"></textarea>
+    <button class="success" onclick="importSyncCode()" style="margin-top:8px;">✅ 确认导入并同步</button>
+  </div>
+
+  <div id="syncFeedback" style="margin-top:10px; font-size:14px; min-height:20px; font-weight:bold;"></div>
+</div>
+
 </body>
 </html>
