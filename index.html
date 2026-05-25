@@ -554,7 +554,9 @@ function pickRandom() {
     }
   } else {
     let activeWrongs = Array.from(wrongSet).filter(i => !skippedSet.has(i));
-    if (activeWrongs.length > 0) {
+    if (wrongMode) {
+      poolIds = activeWrongs;
+    } else if (activeWrongs.length > 0) {
       poolIds = activeWrongs;
     } else {
       poolIds = terms.map((_, i) => i).filter(i => !seenSet.has(i) && !skippedSet.has(i));
