@@ -1,846 +1,275 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CATTI Claude35天冲刺-填鸭背词系统</title>
-
-<style>
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 20px;
-    line-height: 1.6;
-    background-color: #ffffff;
-    color: #111827;
-  }
-  h1 { font-size: 22px; margin-bottom: 6px; }
-  .meta { font-size: 14px; color: #666; margin-bottom: 8px; }
-  .card {
-    border: 1px solid #ddd;
-    border-radius: 12px;
-    padding: 20px;
-    margin-top: 16px;
-  }
-  .chinese { font-size: 22px; font-weight: 600; margin-bottom: 12px; color: #111827; }
-  .chinese span.hint { font-size: 16px; color: #ea580c; background: #fff7ed; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffedd5; margin-left: 8px; font-weight: normal; }
-  input[type="text"], textarea {
-    width: 100%; padding: 14px; font-size: 18px;
-    border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box;
-  }
-  textarea { height: 140px; resize: none; font-size: 16px; }
-  button {
-    padding: 12px 16px; font-size: 16px; border-radius: 8px;
-    border: none; cursor: pointer; margin-top: 10px;
-  }
-  button.primary { background-color: #2563eb; color: white; }
-  button.secondary { background-color: #e5e7eb; color: #111827; }
-  button.warning { background-color: #f59e0b; color: white; }
-  button.hardcore { background-color: #ea580c; color: white; font-weight: bold; width: 100%; margin-top: 10px; padding: 14px; font-size: 16px; }
-  button.success { background-color: #16a34a; color: white; font-weight: bold; width: 100%; margin-top: 15px; padding: 16px; font-size: 18px; }
-  button.info { background-color: #0ea5e9; color: white; font-weight: bold; width: 100%; margin-top: 10px; padding: 14px; font-size: 16px; }
-  .feedback { margin-top: 12px; font-size: 16px; min-height: 40px; }
-  .feedback.correct { color: #16a34a; }
-  .feedback.wrong { color: #dc2626; }
-  .stats { font-size: 14px; color: #555; margin-top: 10px; }
-  .answer { font-family: monospace; background: #f3f4f6; padding: 4px 6px; border-radius: 4px; color: #dc2626; font-weight: bold; }
-
-  .wechat-box {
-    margin-top: 20px; padding: 14px; background-color: #f0fdf4;
-    border: 1px dashed #22c55e; border-radius: 8px; text-align: center; font-size: 15px; color: #15803d;
-  }
-  .wechat-box strong { color: #16a34a; background: #e8f5e9; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
-
-  /* 夜间模式 */
-  body.dark { background-color: #111827; color: #e5e7eb; }
-  body.dark .card { background-color: #1f2937; border-color: #374151; }
-  body.dark .chinese { color: #f9fafb; }
-  body.dark .chinese span.hint { background: #431407; border-color: #7c2d12; color: #ffaca3; }
-  body.dark input[type="text"], body.dark textarea { background-color: #374151; border-color: #4b5563; color: #f9fafb; }
-  body.dark button.secondary { background-color: #374151; color: #e5e7eb; }
-  body.dark button.primary { background-color: #3b82f6; }
-  body.dark button.success { background-color: #22c55e; }
-  body.dark button.hardcore { background-color: #f97316; }
-  body.dark button.info { background-color: #0284c7; }
-  body.dark .feedback.correct { color: #4ade80; }
-  body.dark .feedback.wrong { color: #f87171; }
-  body.dark .wechat-box { background-color: #14532d; border-color: #4ade80; color: #bbf7d0; }
-  body.dark .wechat-box strong { color: #4ade80; background: #166534; }
-
-  /* 🔑 商业授权拦截层样式 */
-  #authOverlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #111827; z-index: 99999;
-    display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
-  }
-  .auth-card {
-    background: #ffffff; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center;
-  }
-  .auth-card h2 { margin-top: 0; color: #1f2937; font-size: 20px; }
-  .auth-card p { color: #4b5563; font-size: 14px; margin-bottom: 20px; }
-  .auth-card input {
-    width: 100%; padding: 12px; font-size: 16px; border: 2px solid #e5e7eb;
-    border-radius: 8px; box-sizing: border-box; text-align: center; margin-bottom: 15px;
-  }
-  .auth-card input:focus { border-color: #2563eb; outline: none; }
-  .auth-card button { width: 100%; padding: 12px; font-size: 16px; margin-top: 5px; }
-  .auth-hint { font-size: 12px; color: #9ca3af; margin-top: 15px; line-height: 1.4; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CATTI 词汇备考系统(进度记忆版)</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --bg-color: #f5f7fa;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        input[type="password"] {
+            width: 80%;
+            padding: 12px;
+            margin: 20px 0;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+        }
+        input[type="password"]:focus {
+            border-color: var(--primary-color);
+        }
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #word-system {
+            display: none;
+        }
+        .progress-bar {
+            background: #eee;
+            height: 6px;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress {
+            background: var(--success-color);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .word-card {
+            background: #fdfdfd;
+            border: 2px solid #edf2f7;
+            border-radius: 8px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            cursor: pointer;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .word-cn {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .word-en {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-top: 15px;
+            display: none;
+            font-weight: 600;
+        }
+        .tip {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-top: 15px;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-nav {
+            flex: 1;
+            background-color: #edf2f7;
+            color: #4a5568;
+        }
+        .btn-nav:hover {
+            background-color: #e2e8f0;
+        }
+        .reset-link {
+            display: block;
+            margin-top: 25px;
+            font-size: 12px;
+            color: #a0aec0;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .reset-link:hover {
+            color: #e53e3e;
+        }
+    </style>
 </head>
-
 <body>
 
-<div id="authOverlay">
-  <div class="auth-card">
-    <h2>🔑 软件未激活</h2>
-    <p>欢迎使用 CATTI 智能背词系统<br>请输入您的专属激活秘钥解锁全量词库</p>
-    <input type="text" id="cdkeyInput" placeholder="请输入激活秘钥..." autocomplete="off">
-    <button class="primary" id="activateBtn">立即激活系统</button>
-    <div id="authFeedback" style="color: #dc2626; font-size: 14px; margin-top: 10px; min-height: 20px; font-weight: bold;"></div>
-    <div class="auth-hint">
-      未获取秘钥？请联系作者购买<br>
-      微信：<strong>majiayooo</strong> (备注：背词系统)
-    </div>
-  </div>
+<div class="container" id="login-box">
+    <h2>🔒 CATTI 学习系统已加密</h2>
+    <p style="color: #718096;">请输入解锁密码进入背单词系统</p>
+    <input type="password" id="password" placeholder="请输入密码" onkeydown="if(event.keyCode==13) verifyPassword()">
+    <br>
+    <button onclick="verifyPassword()">解锁系统</button>
 </div>
 
-<h1>CATTI Claude35天冲刺-填鸭背词系统</h1>
-<div class="meta">
-  精准时态备注 · 死磕错词 · 连对2次才算过 · 全局硬骨头特训 · 自动保存 PROGRESS · 仅限本地使用版
-</div>
-
-<button id="themeToggle" class="secondary" style="margin-bottom: 12px;">夜间模式</button>
-
-<div class="card">
-  <div id="setupMetaArea">
-    <div class="meta">
-      词库选择：
-      <select id="bankSelect">
-        <option value="1">Day 1</option>
-        <option value="2">Day 2</option>
-        <option value="3">Day 3</option>
-        <option value="4">Day 4</option>
-        <option value="5">Day 5</option>
-        <option value="6">Day 6</option>
-        <option value="7">Day 7</option>
-        <option value="8">Day 8</option>
-        <option value="9">Day 9</option>
-        <option value="10">Day 10</option>
-      </select>
+<div class="container" id="word-system">
+    <div style="display: flex; justify-content: space-between; font-size: 14px; color: #718096; margin-bottom: 5px;">
+        <span>CATTI 热词大练兵</span>
+        <span id="progress-text">0 / 0</span>
     </div>
-    <div class="meta">当前模式：<span id="dayLabel" style="font-weight: bold; color: #2563eb;">Day 1</span></div>
-  </div>
-  
-  <div class="meta">进度：<span id="progressText">0 / 0</span></div>
-
-  <div class="chinese" id="chineseTerm">加载中...</div>
-
-  <div id="nextDayContainer"></div>
-
-  <div id="quizSection">
-    <input type="text" id="answerInput" placeholder="请输入英文…" autocomplete="off" />
-
-    <div style="margin-top:10px;">
-      <button class="primary" id="submitBtn">提交答案（Enter）</button>
-      <button class="secondary" id="idkBtn">我不知道（/）</button>
-      <button class="secondary" id="nextBtn">下一题</button>
-      <button class="secondary" id="speakBtn">🔊 朗读英文（.）</button>
-      <button class="warning" id="skipBtn">🚫 今天不背了（Shift+S）</button>
-      <button class="secondary" id="wrongModeBtn">错题本模式：关闭</button>
-      <button class="secondary" id="exportBtn">导出学习表格</button>
+    <div class="progress-bar">
+        <div class="progress" id="progress-juice"></div>
     </div>
-  </div>
 
-  <div class="feedback" id="feedback"></div>
-  <div class="stats" id="stats"></div>
-</div>
+    <div class="word-card" onclick="toggleAnswer()">
+        <div class="word-cn" id="display-cn"></div>
+        <div class="word-en" id="display-en"></div>
+        <div class="tip" id="card-tip">💡 点击卡片反面查看英文翻译</div>
+    </div>
 
-<div class="card" style="margin-top:20px;">
-  <h3 style="margin-top:0;">📝 单词专属笔记（最多 500 字）</h3>
-  <textarea id="notepad" placeholder="在这里记录当前单词的想法、重点、例句……"></textarea>
-  <div class="meta" id="noteCount">0 / 500</div>
+    <div class="btn-group">
+        <button class="btn-nav" onclick="prevWord()">⬅️ 上一个</button>
+        <button class="btn-nav" style="background-color: #e6fffa; color: #234e52;" onclick="toggleAnswer()">👁️ 翻面</button>
+        <button class="btn-nav" onclick="nextWord()">下一个 ➡️</button>
+    </div>
+
+    <span class="reset-link" onclick="resetProgress()">🔄 重置背词进度回到第一个</span>
 </div>
 
 <script>
-/* ===================== 🔑 商业授权核心验证逻辑 (100% 稳妥混淆版) ===================== */
-// 这里只存放密文，删除了所有的明文注释，别人右键看源码绝对无法偷看密码
-const ENCRYPTED_KEYS = [
-  "Q0FUVEktODg4OC04ODg4",
-  "VklQLUNMQVVERS0zNURBWQ==",
-  "UEFTUy0yMDI2LUNBVFRJ"
-];
+    // 密码设置
+    const CORRECT_PASSWORD = "CATTI_PASS_666"; 
 
-const authOverlay = document.getElementById("authOverlay");
-const cdkeyInput = document.getElementById("cdkeyInput");
-const activateBtn = document.getElementById("activateBtn");
-const authFeedback = document.getElementById("authFeedback");
+    // 词库源（你可以随时按此格式在数组里追加新词）
+    const WORD_LIST = [
+        { cn: "新质生产力", en: "new quality productive forces" },
+        { cn: "高质量发展", en: "high-quality development" },
+        { cn: "中国式现代化", en: "Chinese modernization" },
+        { cn: "新型消费", en: "new types of consumption" },
+        { cn: "expand domestic demand", en: "expand domestic demand" },
+        { cn: "人工智能+", en: "AI Plus initiative" },
+        { cn: "绿色低碳转型", en: "green and low-carbon transition" }
+    ];
 
-function checkAuth() {
-  const isActivated = localStorage.getItem("catti_sys_activated");
-  if (isActivated === "true") {
-    authOverlay.style.display = "none";
-    return true;
-  }
-  authOverlay.style.display = "flex";
-  return false;
-}
+    let currentIndex = 0;
+    let isShowingAnswer = false;
 
-activateBtn.addEventListener("click", () => {
-  // 自动去除两端空格并转换为大写，极大提升买家输入的容错率
-  const inputKey = cdkeyInput.value.trim().toUpperCase();
-  if (!inputKey) return;
-
-  // 将用户输入的激活码转换
-  const inputSecret = btoa(inputKey);
-
-  // 比对
-  if (ENCRYPTED_KEYS.includes(inputSecret)) {
-    authFeedback.style.color = "#16a34a";
-    authFeedback.textContent = "验证成功！正在初始化系统...";
-    localStorage.setItem("catti_sys_activated", "true");
-    setTimeout(() => {
-      authOverlay.style.display = "none";
-      if (!loadProgress()) { pickRandom(); updateStats(); }
-    }, 800);
-  } else {
-    authFeedback.style.color = "#dc2626";
-    authFeedback.textContent = "秘钥无效或已被禁用，请重新输入！";
-  }
-});
-
-cdkeyInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") activateBtn.click();
-});
-
-const hasAuth = checkAuth();
-
-/* ===================== 全量精准优化词库 (Day 1 - 10) ===================== */
-const wordBanks = {
-  1: [
-    { zh: "高质量发展", en: "high-quality development" },
-    { zh: "新质生产力", en: "new quality productive forces", hint: "名词复数" },
-    { zh: "新发展格局", en: "new pattern of development" },
-    { zh: "新发展理念", en: "new development philosophy" },
-    { zh: "国内大循环", en: "domestic economic circulation" },
-    { zh: "稳中求进", en: "pursuing progress while ensuring stability", hint: "doing开头" },
-    { zh: "逆周期调节", en: "counter-cyclical adjustments", hint: "名词复数" },
-    { zh: "宏观调控", en: "macro regulation" },
-    { zh: "积极的财政政策", en: "proactive fiscal policy" },
-    { zh: "适度宽松的货币政策", en: "appropriately accommodative monetary policy" },
-    { zh: "扩大内需", en: "boosting/expanding domestic demand", hint: "斜杠隔开" },
-    { zh: "有效投资", en: "effective investment" },
-    { zh: "国内生产总值", en: "gross domestic product (GDP)", hint: "带括号简写" },
-    { zh: "居民消费价格指数", en: "consumer price index (CPI)", hint: "带括号简写" },
-    { zh: "国际收支基本平衡", en: "a basic equilibrium in the balance of payments" },
-    { zh: "面对", en: "in the face of", hint: "介词短语" },
-    { zh: "以…为特征", en: "marked by", hint: "过去分词" },
-    { zh: "奋进/前行", en: "forge ahead", hint: "动词原形" },
-    { zh: "在…方面取得扎实进展", en: "solid headway was made in", hint: "被动语态/过去时" },
-    { zh: "在…坚强领导下", en: "under the strong leadership of", hint: "介词短语" }
-  ],
-  2: [
-    { zh: "全国统一大市场", en: "unified national market" },
-    { zh: "公平竞争审查", en: "fair competition review" },
-    { zh: "营商环境", en: "business environment" },
-    { zh: "民营经济", en: "private sector / private economy", hint: "空格斜杠隔开" },
-    { zh: "国有企业改革", en: "reform of state-owned enterprises (SOEs)", hint: "带括号复数" },
-    { zh: "高水平对外开放", en: "high-standard opening up" },
-    { zh: "跨境服务贸易负面清单", en: "negative list for cross-border trade in services" },
-    { zh: "外资准入限制", en: "market access restrictions on foreign investment", hint: "限制用复数" },
-    { zh: "共建“一带一路”", en: "Belt and Road cooperation" },
-    { zh: "单边开放", en: "unilateral opening up" },
-    { zh: "双向投资合作", en: "two-way investment cooperation" },
-    { zh: "自贸试验区", en: "pilot free trade zones", hint: "名词复数" },
-    { zh: "各类经营主体", en: "all market entities", hint: "主体用复数" },
-    { zh: "激发市场活力", en: "energize the market" },
-    { zh: "深化改革", en: "deepen reform" },
-    { zh: "达到/上升到", en: "rose to", hint: "过去时" },
-    { zh: "同比增长X%", en: "a year-on-year increase of X percent", hint: "名词性短语" },
-    { zh: "位居…之列", en: "ranks among", hint: "一般现在时单三" },
-    { zh: "创历史新高", en: "reached a record high", hint: "过去时" },
-    { zh: "超过", en: "surpassed", hint: "过去时" }
-  ],
-  3: [
-    { zh: "清理废除", en: "overhauled and abolished", hint: "过去时并列" },
-    { zh: "妨碍", en: "impeding", hint: "现在分词/后置定语" },
-    { zh: "制定实施", en: "formulated and implemented", hint: "过去时并列" },
-    { zh: "出台…措施", en: "adopted measures to", hint: "过去时/措施复数" },
-    { zh: "提请…审议", en: "submitted... for deliberation", hint: "过去时" },
-    { zh: "优化…布局", en: "improve the layout of", hint: "动词原形" }
-  ],
-  4: [
-    { zh: "增强发展内生动力", en: "boost the internal momentum of development", hint: "动词原形" },
-    { zh: "扩大单方面免签", en: "offer unilateral visa waivers", hint: "动词原形/免签复数" },
-    { zh: "过境免签", en: "visa-free transit" },
-    { zh: "入境旅游", en: "inbound tourism" },
-    { zh: "重大主场外交", en: "major diplomatic events hosted at home", hint: "事件复数/后置定语" },
-    { zh: "进出口结构", en: "the import and export mix" },
-    { zh: "增长点", en: "growth drivers", hint: "名词复数" },
-    { zh: "开放试点", en: "opening-up trials", hint: "名词复数" },
-    { zh: "扩大…国家范围", en: "offered... to more countries", hint: "过去时/国家复数" },
-    { zh: "延长至X小时", en: "extended... to X hours", hint: "过去时/小时复数" },
-    { zh: "持续升温/持续增长", en: "a sustained surge in", hint: "名词短语" },
-    { zh: "取得显著成效", en: "impressive strides were made in", hint: "被动语态/过去时/复数" },
-    { zh: "一批", en: "a number of" },
-    { zh: "民生项目", en: "public wellbeing programs", hint: "项目复数" }
-  ],
-  5: [
-    { zh: "创新驱动发展", en: "innovation-driven development" },
-    { zh: "科技自立自强", en: "self-reliance and strength in science and technology" },
-    { zh: "关键核心技术攻关", en: "breakthroughs in core technologies in key fields", hint: "复数in复数" },
-    { zh: "原始创新", en: "original innovation" },
-    { zh: "科技创新和产业创新深度融合", en: "full integration between technological and industrial innovation" },
-    { zh: "人工智能", en: "artificial intelligence (AI)", hint: "带括号简写" },
-    { zh: "集成电路", en: "integrated circuits", hint: "名词复数" },
-    { zh: "量子科技", en: "quantum technology" },
-    { zh: "数字经济", en: "digital economy" },
-    { zh: "数字中国建设", en: "Digital China Initiative" },
-    { zh: "新兴产业", en: "emerging industries", hint: "名词复数" },
-    { zh: "未来产业", en: "industries of the future", hint: "名词复数" },
-    { zh: "先进制造业集群", en: "advanced manufacturing clusters", hint: "名词复数" },
-    { zh: "产业升级", en: "industrial upgrading" },
-    { zh: "拔尖创新人才", en: "first-class innovators", hint: "名词复数" },
-    { zh: "推进…强国建设", en: "To boost China's strength in", hint: "不定式目的状语" },
-    { zh: "全面启动实施", en: "rolled out... across the board", hint: "过去时短语" },
-    { zh: "加快完善", en: "worked faster to improve", hint: "过去时" },
-    { zh: "加强/加大力度", en: "redoubled efforts to", hint: "过去时/努力复数" },
-    { zh: "稳定…运行", en: "ensured stable performance in", hint: "过去时/名词性" },
-    { zh: "…增长了X%", en: "which saw a X-percent increase in", hint: "定语从句过去时" }
-  ],
-  6: [
-    { zh: "技术合同成交额", en: "the value of technology contract transactions", hint: "名词短语/交易复数" },
-    { zh: "强制性国家标准", en: "mandatory national standards", hint: "名词复数" },
-    { zh: "高技术制造业", en: "high-tech manufacturing" },
-    { zh: "装备制造业", en: "equipment manufacturing" },
-    { zh: "新能源汽车", en: "new-energy vehicles", hint: "名词复数" },
-    { zh: "商业航天", en: "commercial space" },
-    { zh: "北斗应用", en: "applications of the BeiDou Navigation Satellite System", hint: "应用复数" },
-    { zh: "增加值", en: "value added" },
-    { zh: "建成入列", en: "was delivered and commissioned", hint: "单数被动过去时" },
-    { zh: "月球背面采样返回", en: "sample collection from the far side of the moon" },
-    { zh: "取得新成果", en: "new achievements were made in", hint: "复数被动过去时" },
-    { zh: "人类首次", en: "humanity's first-ever" },
-    { zh: "月球背面", en: "the far side of the moon" },
-    { zh: "增长了X%", en: "increased by X percent", hint: "过去时" },
-    { zh: "…成交额", en: "the value of... transactions", hint: "中间加省略号/复数" }
-  ],
-  7: [
-    { zh: "民生福祉", en: "the people's wellbeing" },
-    { zh: "高质量充分就业", en: "high-quality full employment" },
-    { zh: "城镇新增就业", en: "new urban jobs created", hint: "过去分词后置定语/复数" },
-    { zh: "城镇调查失业率", en: "surveyed urban unemployment rate", hint: "过去分词修饰" },
-    { zh: "居民人均可支配收入", en: "per capita disposable income" },
-    { zh: "脱贫攻坚成果", en: "achievements in poverty alleviation", hint: "成果用复数" },
-    { zh: "乡村全面振兴", en: "all-around rural revitalization" },
-    { zh: "共同富裕", en: "common prosperity" },
-    { zh: "社会保障", en: "social security" },
-    { zh: "基本养老保险", en: "basic old-age insurance" },
-    { zh: "基本医疗保险", en: "basic medical insurance" },
-    { zh: "义务教育", en: "compulsory education" },
-    { zh: "“双减”", en: "reducing students' burdens from homework and off-campus tutoring", hint: "全英文详解" },
-    { zh: "新型城镇化", en: "new urbanization" },
-    { zh: "“一老一小”", en: "elderly care and childcare", hint: "and连接" },
-    { zh: "出台…政策措施", en: "adopted new policy measures to", hint: "过去时/措施复数" },
-    { zh: "强化对企业吸纳就业的支持", en: "supported businesses in creating new jobs", hint: "过去时/企业和工作复数" },
-    { zh: "脱贫人口", en: "people lifted out of poverty", hint: "过去分词后置" },
-    { zh: "农民工", en: "rural migrant workers", hint: "名词复数" },
-    { zh: "家庭经济困难学生", en: "students with financial difficulties", hint: "学生与困难复数" },
-    { zh: "提标扩面", en: "increased the standards and expanded the coverage", hint: "过去时并列/标准复数" }
-  ],
-  8: [
-    { zh: "基础养老金（城乡居民）", en: "basic old-age benefits", hint: "名词复数" },
-    { zh: "退休人员基本养老金", en: "basic pension benefits for retirees", hint: "福利和人员复数" },
-    { zh: "养老服务", en: "elderly care services", hint: "名词复数" },
-    { zh: "银发经济", en: "silver economy" },
-    { zh: "残疾人", en: "people with disabilities", hint: "复数形式" },
-    { zh: "优抚补助", en: "subsidies for entitled groups", hint: "补助和群体复数" },
-    { zh: "健全…确定和调整机制", en: "improved the mechanism to set and adjust", hint: "过去时开头" },
-    { zh: "低保标准", en: "subsistence allowance standards", hint: "名词复数" },
-    { zh: "拓展…范围", en: "expanded the coverage of", hint: "过去时" },
-    { zh: "困难群众", en: "people in difficulty" }
-  ],
-  9: [
-    { zh: "绿色低碳发展", en: "green and low-carbon development" },
-    { zh: "碳达峰碳中和", en: "peaking carbon emissions and achieving carbon neutrality", hint: "ing并列" },
-    { zh: "单位GDP能耗", en: "energy consumption per unit of GDP" },
-    { zh: "单位GDP二氧化碳排放", en: "carbon dioxide emissions per unit of GDP", hint: "排放复数" },
-    { zh: "可再生能源", en: "renewable energy" },
-    { zh: "非化石能源", en: "non-fossil fuels/energy", hint: "斜杠隔开/复数" },
-    { zh: "生态文明建设", en: "ecological conservation" },
-    { zh: "美丽中国", en: "Beautiful China" },
-    { zh: "全面绿色转型", en: "green transition across the board" },
-    { zh: "细颗粒物", en: "fine particulate matter (PM2.5)", hint: "带括号简写" },
-    { zh: "污染防治", en: "pollution prevention and control" },
-    { zh: "节能降碳", en: "energy conservation and carbon reduction" },
-    { zh: "新型储能", en: "new types of energy storage", hint: "类型复数" },
-    { zh: "温室气体自愿减排", en: "voluntary greenhouse gas emission reduction" },
-    { zh: "强化…综合治理", en: "stepped up comprehensive efforts to improve", hint: "过去时短语/努力复数" },
-    { zh: "排放量继续下降", en: "yet another drop in the discharge of", hint: "名词短语" },
-    { zh: "保护和修复重要生态系统", en: "protecting and restoring key ecosystems", hint: "ing开头/系统复数" },
-    { zh: "面积持续双缩减", en: "a further reduction in the areas of both... and...", hint: "中间加三个点" },
-    { zh: "生物多样性保护", en: "biodiversity conservation" },
-    { zh: "珍稀濒危野生动植物", en: "rare and endangered wildlife species", hint: "物种复数" }
-  ],
-  10: [
-    { zh: "生物多样性", en: "biodiversity" },
-    { zh: "荒漠化", en: "desertification / deserts", hint: "空格斜杠隔开/复数" },
-    { zh: "沙化", en: "sandy lands", hint: "复数名词" },
-    { zh: "碳排放权交易", en: "carbon emissions trading", hint: "排放复数" },
-    { zh: "新增装机", en: "installed capacity grew by", hint: "过去时结尾" },
-    { zh: "优良天数比例", en: "proportion of days with good or excellent air quality", hint: "天数复数" },
-    { zh: "地表水优良水质", en: "surface water with a good quality rating" },
-    { zh: "发电量", en: "electricity generated / power generation", hint: "空格斜杠隔开" },
-    { zh: "更趋活跃", en: "became increasingly brisk", hint: "过去时" },
-    { zh: "因地制宜", en: "in light of local conditions", hint: "条件复数" },
-    { zh: "纵深推进", en: "advance", hint: "原形" },
-    { zh: "持续防范化解", en: "continue to prevent and defuse", hint: "原形并列" }
-  ]
-};
-
-/* ===================== 全局持久化账本（硬骨头核心） ===================== */
-let globalErrorLog = JSON.parse(localStorage.getItem("catti_global_errors") || "{}");
-
-function logWordError(en) {
-  globalErrorLog[en] = (globalErrorLog[en] || 0) + 1;
-  localStorage.setItem("catti_global_errors", JSON.stringify(globalErrorLog));
-}
-function clearWordError(en) {
-  if (globalErrorLog[en]) {
-    delete globalErrorLog[en];
-    localStorage.setItem("catti_global_errors", JSON.stringify(globalErrorLog));
-  }
-}
-
-function getHardcorePool() {
-  let pool = [];
-  let seenEn = new Set();
-  for (let day in wordBanks) {
-    wordBanks[day].forEach(item => {
-      if (globalErrorLog[item.en] >= 2 && !seenEn.has(item.en)) {
-        pool.push(item);
-        seenEn.add(item.en);
-      }
-    });
-  }
-  return pool;
-}
-
-/* ===================== 系统状态控制 ===================== */
-let currentBank = Number(localStorage.getItem("catti_bank") || 1);
-let isHardcoreMode = false; 
-
-let terms = []; 
-let wrongSet = new Set();
-let wrongCount = {}; 
-let seenSet = new Set();
-let skippedSet = new Set(); 
-let currentIndex = -1;
-let total = 0;
-let correct = 0;
-let wrongMode = false;
-
-// 硬骨头独立空间状态机
-let hardcoreTotalCount = 0; 
-let hardcoreMasteredSet = new Set(); 
-let hardcoreWrongCount = {}; 
-let hardcoreWrongSet = new Set();
-
-const bankSelect = document.getElementById("bankSelect");
-const chineseEl = document.getElementById("chineseTerm");
-const inputEl = document.getElementById("answerInput");
-const feedbackEl = document.getElementById("feedback");
-const statsEl = document.getElementById("stats");
-const progressEl = document.getElementById("progressText");
-const wrongModeBtn = document.getElementById("wrongModeBtn");
-const notepad = document.getElementById("notepad");
-const noteCount = document.getElementById("noteCount");
-const quizSection = document.getElementById("quizSection");
-const nextDayContainer = document.getElementById("nextDayContainer");
-const dayLabel = document.getElementById("dayLabel");
-
-function normalize(str) { return str.trim().toLowerCase().replace(/\s+/g, " "); }
-function speakText(text, lang = "en-US") {
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = lang; utter.rate = 1.0;
-  speechSynthesis.cancel(); speechSynthesis.speak(utter);
-}
-
-function updateNoteCount() { noteCount.textContent = `${notepad.value.length} / 500`; }
-function loadWordNote() {
-  if (currentIndex !== -1 && terms[currentIndex]) {
-    const wordKey = `note_${terms[currentIndex].en}`;
-    notepad.value = localStorage.getItem(wordKey) || "";
-    notepad.placeholder = `记录笔记 【${terms[currentIndex].zh}】...`;
-  } else {
-    notepad.value = ""; notepad.placeholder = "记录想法...";
-  }
-  updateNoteCount();
-}
-
-/* ===================== 环境切回常规主线 ===================== */
-function changeBank(bankId) {
-  isHardcoreMode = false;
-  currentBank = bankId;
-  bankSelect.value = String(currentBank);
-  localStorage.setItem("catti_bank", String(currentBank));
-
-  document.getElementById("setupMetaArea").style.display = "block";
-  dayLabel.textContent = `Day ${currentBank}`;
-  dayLabel.style.color = "#2563eb";
-
-  terms = wordBanks[currentBank];
-  wrongSet = new Set(); wrongCount = {}; seenSet = new Set(); skippedSet = new Set();
-  currentIndex = -1; total = 0; correct = 0; wrongMode = false;
-  wrongModeBtn.textContent = "错题本模式：关闭";
-
-  localStorage.removeItem(`catti_progress_${currentBank}`);
-  nextDayContainer.innerHTML = "";
-  quizSection.style.display = "block";
-
-  pickRandom();
-  updateStats();
-  saveProgress();
-}
-
-/* ===================== 环境切入硬骨头特训 ===================== */
-function startHardcoreMode() {
-  let fullPool = getHardcorePool();
-  if (fullPool.length === 0) return;
-
-  isHardcoreMode = true;
-  document.getElementById("setupMetaArea").style.display = "block";
-  dayLabel.textContent = "🔥 啃硬骨头特训中";
-  dayLabel.style.color = "#ea580c";
-
-  fullPool.sort(() => Math.random() - 0.5);
-  terms = fullPool.slice(0, 10);
-
-  hardcoreWrongSet = new Set();
-  hardcoreWrongCount = {};
-  hardcoreMasteredSet = new Set();
-  hardcoreTotalCount = terms.length;
-  
-  currentIndex = -1;
-  quizSection.style.display = "block";
-  nextDayContainer.innerHTML = "";
-
-  pickRandom();
-  updateStats();
-}
-
-/* ===================== 核心出题算法 ===================== */
-function pickRandom() {
-  if (!hasAuth && !checkAuth()) return; // 💡 未激活不跑核心业务逻辑
-
-  if (isHardcoreMode) {
-    if (hardcoreMasteredSet.size >= hardcoreTotalCount && hardcoreTotalCount > 0) {
-      showNextDayOption();
-      return;
-    }
-  } else {
-    let activeWrongs = Array.from(wrongSet).filter(i => !skippedSet.has(i));
-    if (seenSet.size >= terms.length && activeWrongs.length === 0) {
-      showNextDayOption();
-      return;
-    }
-  }
-
-  let poolIds = [];
-  
-  if (isHardcoreMode) {
-    let activeHardcoreWrongs = Array.from(hardcoreWrongSet);
-    if (activeHardcoreWrongs.length > 0) {
-      poolIds = activeHardcoreWrongs;
-    } else {
-      poolIds = terms.map((_, i) => i).filter(i => !hardcoreMasteredSet.has(i));
-    }
-  } else {
-    let activeWrongs = Array.from(wrongSet).filter(i => !skippedSet.has(i));
-    if (activeWrongs.length > 0) {
-      poolIds = activeWrongs;
-    } else {
-      poolIds = terms.map((_, i) => i).filter(i => !seenSet.has(i) && !skippedSet.has(i));
-    }
-  }
-
-  if (poolIds.length === 0) {
-    showNextDayOption();
-    return;
-  }
-
-  quizSection.style.display = "block";
-  nextDayContainer.innerHTML = "";
-
-  const randIdx = Math.floor(Math.random() * poolIds.length);
-  currentIndex = poolIds[randIdx];
-
-  const currentWord = terms[currentIndex];
-  if (currentWord.hint) {
-    chineseEl.innerHTML = `${currentWord.zh}<span class="hint">⚠️ ${currentWord.hint}</span>`;
-  } else {
-    chineseEl.textContent = currentWord.zh;
-  }
-
-  inputEl.value = "";
-  inputEl.focus();
-  feedbackEl.textContent = "";
-
-  if (!isHardcoreMode) seenSet.add(currentIndex);
-  loadWordNote();
-  updateProgress();
-}
-
-function updateStats() {
-  const rate = total === 0 ? 0 : ((correct / total) * 100).toFixed(1);
-  let activePoolSize = isHardcoreMode ? hardcoreWrongSet.size : wrongSet.size;
-  statsEl.textContent = `答题数：${total}，答对：${correct}，正确率：${rate}%，本轮死磕池：${activePoolSize}`;
-  updateProgress();
-}
-
-function updateProgress() {
-  if (isHardcoreMode) {
-    const percent = ((hardcoreMasteredSet.size / hardcoreTotalCount) * 100).toFixed(1);
-    progressEl.textContent = `${hardcoreMasteredSet.size} / ${hardcoreTotalCount}（${percent}%）[硬骨头特训]`;
-  } else {
-    const totalWords = terms.length;
-    const masteredCount = terms.map((_, i) => i).filter(i => seenSet.has(i) && !wrongSet.has(i) && !skippedSet.has(i)).length;
-    const activeTotal = totalWords - skippedSet.size;
-    const displayTotal = activeTotal > 0 ? activeTotal : totalWords;
-    const percent = ((masteredCount / displayTotal) * 100).toFixed(1);
-    progressEl.textContent = `${masteredCount} / ${displayTotal}（${percent}%）`;
-  }
-}
-
-/* ===================== 核心输入判定 ===================== */
-function submitAnswer() {
-  if (currentIndex === -1) return;
-  const user = normalize(inputEl.value);
-  const target = normalize(terms[currentIndex].en);
-  if (!user) return;
-
-  total += 1;
-  speakText(terms[currentIndex].en, "en-US");
-
-  if (user === target) {
-    correct += 1;
-
-    if (isHardcoreMode) {
-      if (hardcoreWrongSet.has(currentIndex)) {
-        hardcoreWrongCount[currentIndex] = (hardcoreWrongCount[currentIndex] || 0) + 1;
-        if (hardcoreWrongCount[currentIndex] >= 2) {
-          hardcoreWrongSet.delete(currentIndex);
-          hardcoreMasteredSet.add(currentIndex);
-          clearWordError(terms[currentIndex].en); 
-        }
-      } else {
-        hardcoreWrongSet.add(currentIndex);
-        hardcoreWrongCount[currentIndex] = 1;
-      }
-    } else {
-      if (wrongSet.has(currentIndex)) {
-        wrongCount[currentIndex] = (wrongCount[currentIndex] || 0) + 1;
-        if (wrongCount[currentIndex] >= 2) {
-          wrongSet.delete(currentIndex);
-          delete wrongCount[currentIndex];
-        }
-      }
-    }
-
-    feedbackEl.textContent = "✅ 正确！";
-    feedbackEl.className = "feedback correct";
-    updateStats();
-    saveProgress();
-    setTimeout(pickRandom, 1000); 
-    return;
-  }
-
-  feedbackEl.innerHTML = `❌ 拼写错误！<br>标准答案：<span class="answer">${terms[currentIndex].en}</span><br>请重新抄写一次。`;
-  feedbackEl.className = "feedback wrong";
-
-  if (isHardcoreMode) {
-    hardcoreWrongSet.add(currentIndex);
-    hardcoreWrongCount[currentIndex] = 0; 
-  } else {
-    wrongSet.add(currentIndex);
-    wrongCount[currentIndex] = 0; 
-    logWordError(terms[currentIndex].en); 
-  }
-
-  updateStats();
-  saveProgress();
-}
-
-function skipCurrentWord() {
-  if (currentIndex === -1 || isHardcoreMode) return; 
-  skippedSet.add(currentIndex);
-  wrongSet.delete(currentIndex);
-  delete wrongCount[currentIndex];
-  feedbackEl.textContent = `🚫 已将【${terms[currentIndex].zh}】移出今日词表`;
-  feedbackEl.className = "feedback wrong";
-  updateStats(); saveProgress();
-  setTimeout(pickRandom, 500);
-}
-
-/* ===================== 通关结算台 ===================== */
-function showNextDayOption() {
-  currentIndex = -1;
-  loadWordNote();
-  updateProgress();
-
-  if (isHardcoreMode) {
-    chineseEl.textContent = "🏆 战栗吧生词！这一组高频硬骨头已被你完全嚼碎！";
-  } else {
-    chineseEl.textContent = "🎉 太棒了！当前 Day 的所有单词已全数消灭！";
-  }
-  
-  quizSection.style.display = "none";
-  nextDayContainer.innerHTML = ""; 
-
-  if (!isHardcoreMode) {
-    const nextBankId = currentBank + 1;
-    const playBtn = document.createElement("button");
-    playBtn.className = "success";
-    if (wordBanks[nextBankId] !== undefined) {
-      playBtn.textContent = `已背完，点我进入超前点播 Day ${nextBankId} ➔`;
-      playBtn.onclick = () => changeBank(nextBankId);
-    } else {
-      playBtn.textContent = `🏆 10天总通关！点我重头复习 Day 1 ↺`;
-      playBtn.onclick = () => changeBank(1);
-    }
-    nextDayContainer.appendChild(playBtn);
-  } else {
-    const backBtn = document.createElement("button");
-    backBtn.className = "success";
-    backBtn.textContent = "🔙 骨头啃完了，返回我的日常主线";
-    backBtn.onclick = () => changeBank(currentBank);
-    nextDayContainer.appendChild(backBtn);
-  }
-
-  let bonePool = getHardcorePool();
-  if (bonePool.length > 0) {
-    const boneBtn = document.createElement("button");
-    boneBtn.className = "hardcore";
-    boneBtn.textContent = `🔥 去啃硬骨头！专杀历史高频错词（当前余 ${bonePool.length} 个）`;
-    boneBtn.onclick = startHardcoreMode;
-    nextDayContainer.appendChild(boneBtn);
-  }
-
-  const expBtn = document.createElement("button");
-  expBtn.className = "info";
-  expBtn.textContent = "📊 导出我刚刚背的这套单词及笔记";
-  expBtn.onclick = exportTable;
-  nextDayContainer.appendChild(expBtn);
-
-  const wechatBox = document.createElement("div");
-  wechatBox.className = "wechat-box";
-  wechatBox.innerHTML = `💡 有问题或者加新词？微信：<strong>majiayooo</strong>`;
-  nextDayContainer.appendChild(wechatBox);
-}
-
-function exportTable() {
-  let tableHtml = `<h2>学习结果表</h2><table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%;font-size:14px;"><tr><th>中文</th><th>英文</th><th>历史错误</th></tr>`;
-  terms.forEach((item) => {
-    let errTimes = globalErrorLog[item.en] || 0;
-    tableHtml += `<tr><td>${item.zh} [${item.hint || '无'}]</td><td>${item.en}</td><td>${errTimes} 次</td></tr>`;
-  });
-  tableHtml += `</table>`;
-  const win = window.open("", "_blank"); win.document.write(tableHtml); win.document.close();
-}
-
-/* ===================== 事件绑定 ===================== */
-bankSelect.value = String(currentBank);
-bankSelect.addEventListener("change", () => changeBank(Number(bankSelect.value)));
-wrongModeBtn.addEventListener("click", () => {
-  wrongMode = !wrongMode; wrongModeBtn.textContent = wrongMode ? "错题本模式：开启" : "错题本模式：关闭";
-  pickRandom(); updateStats(); saveProgress();
-});
-
-document.getElementById("submitBtn").addEventListener("click", submitAnswer);
-document.getElementById("nextBtn").addEventListener("click", () => { pickRandom(); saveProgress(); });
-document.getElementById("idkBtn").addEventListener("click", () => {
-  if (currentIndex === -1) return;
-  speakText(terms[currentIndex].en, "en-US");
-  feedbackEl.innerHTML = `❌ 我不知道。<br>答案：<span class="answer">${terms[currentIndex].en}</span><br>请重新输入。`;
-  feedbackEl.className = "feedback wrong";
-  
-  if (isHardcoreMode) {
-    hardcoreWrongSet.add(currentIndex); hardcoreWrongCount[currentIndex] = 0;
-  } else {
-    wrongSet.add(currentIndex); wrongCount[currentIndex] = 0;
-    logWordError(terms[currentIndex].en);
-  }
-  updateStats(); saveProgress();
-});
-document.getElementById("speakBtn").addEventListener("click", () => { if (currentIndex !== -1) speakText(terms[currentIndex].en, "en-US"); });
-document.getElementById("skipBtn").addEventListener("click", skipCurrentWord);
-document.getElementById("exportBtn").addEventListener("click", exportTable);
-
-document.getElementById("themeToggle").addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  document.getElementById("themeToggle").textContent = document.body.classList.contains("dark") ? "白天模式" : "夜间模式";
-});
-
-document.addEventListener("keydown", e => {
-  if (document.activeElement === notepad) return;
-  if (e.key === "Enter" && document.activeElement === inputEl) submitAnswer();
-  if (e.key === "/" && document.activeElement === inputEl) { e.preventDefault(); document.getElementById("idkBtn").click(); }
-  if (e.key === "." && document.activeElement === inputEl) { e.preventDefault(); document.getElementById("speakBtn").click(); }
-  if (e.shiftKey && (e.key === "S" || e.key === "s")) { e.preventDefault(); skipCurrentWord(); }
-});
-
-function saveProgress() {
-  if(isHardcoreMode) return; 
-  const data = { currentIndex, wrongSet: Array.from(wrongSet), wrongCount, total, correct, seenSet: Array.from(seenSet), skippedSet: Array.from(skippedSet), wrongMode };
-  localStorage.setItem(`catti_progress_${currentBank}`, JSON.stringify(data));
-}
-
-function loadProgress() {
-  const raw = localStorage.getItem(`catti_progress_${currentBank}`);
-  if (!raw) return false;
-  try {
-    const data = JSON.parse(raw);
-    currentIndex = data.currentIndex ?? -1;
-    wrongSet = new Set(data.wrongSet ?? []);
-    wrongCount = data.wrongCount ?? {};
-    total = data.total ?? 0; correct = data.correct ?? 0;
-    seenSet = new Set(data.seenSet ?? []); skippedSet = new Set(data.skippedSet ?? []);
-    wrongMode = data.wrongMode ?? false;
-    wrongModeBtn.textContent = wrongMode ? "错题本模式：开启" : "错题本模式：关闭";
-    return true;
-  } catch (e) { return false; }
-}
-
-notepad.addEventListener("input", () => {
-  if (notepad.value.length > 500) notepad.value = notepad.value.slice(0, 500);
-  updateNoteCount();
-  if (currentIndex !== -1 && terms[currentIndex]) localStorage.setItem(`note_${terms[currentIndex].en}`, notepad.value);
-});
-
-// 首次启动逻辑：优先验证授权，验证通过才初始化常规词库
-terms = wordBanks[currentBank];
-if (hasAuth) {
-  if (!loadProgress()) {
-    pickRandom(); updateStats();
-  } else {
-    if (seenSet.size >= terms.length && Array.from(wrongSet).filter(i => !skippedSet.has(i)).length === 0) {
-      showNextDayOption(); updateStats();
-    } else {
-      if (currentIndex === -1 || !terms[currentIndex] || skippedSet.has(currentIndex)) {
-        pickRandom(); updateStats();
-      } else {
-        const currentWord = terms[currentIndex];
-        if (currentWord.hint) {
-          chineseEl.innerHTML = `${currentWord.zh}<span class="hint">⚠️ ${currentWord.hint}</span>`;
+    // 密码验证函数
+    function verifyPassword() {
+        const inputPassword = document.getElementById('password').value.trim();
+        
+        if (inputPassword === CORRECT_PASSWORD) {
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('word-system').style.display = 'block';
+            initSystem();
         } else {
-          chineseEl.textContent = currentWord.zh;
+            alert("❌ 密码错误，请重新输入！");
+            document.getElementById('password').value = "";
+            document.getElementById('password').focus();
         }
-        loadWordNote(); updateStats();
-      }
     }
-  }
-}
+
+    // 初始化背单词界面并读取进度
+    function initSystem() {
+        // 从本地缓存加载之前的进度，如果没有则默认为 0
+        const savedIndex = localStorage.getItem('catti_word_progress');
+        if (savedIndex !== null && savedIndex < WORD_LIST.length) {
+            currentIndex = parseInt(savedIndex, 10);
+        } else {
+            currentIndex = 0;
+        }
+        updateCard();
+    }
+
+    // 更新卡片内容并保存进度
+    function updateCard() {
+        if (WORD_LIST.length === 0) return;
+        
+        const currentWord = WORD_LIST[currentIndex];
+        document.getElementById('display-cn').innerText = currentWord.cn;
+        document.getElementById('display-en').innerText = currentWord.en;
+        
+        isShowingAnswer = false;
+        document.getElementById('display-en').style.display = 'none';
+        document.getElementById('card-tip').innerText = "💡 点击卡片查看英文翻译";
+
+        // 更新进度条 UI
+        const total = WORD_LIST.length;
+        document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${total}`;
+        const progressPercent = ((currentIndex + 1) / total) * 100;
+        document.getElementById('progress-juice').style.width = `${progressPercent}%`;
+
+        // 【关键改动】实时保存当前索引到用户浏览器的本地缓存
+        localStorage.setItem('catti_word_progress', currentIndex);
+    }
+
+    // 翻转卡片
+    function toggleAnswer() {
+        isShowingAnswer = !isShowingAnswer;
+        const enDiv = document.getElementById('display-en');
+        const tipDiv = document.getElementById('card-tip');
+        
+        if (isShowingAnswer) {
+            enDiv.style.display = 'block';
+            tipDiv.innerText = "💡 再次点击可隐藏英文";
+        } else {
+            enDiv.style.display = 'none';
+            tipDiv.innerText = "💡 点击卡片查看英文翻译";
+        }
+    }
+
+    // 下一个
+    function nextWord() {
+        if (currentIndex < WORD_LIST.length - 1) {
+            currentIndex++;
+            updateCard();
+        } else {
+            alert("🎉 太棒了！这组词汇你已经全部过了一遍了！");
+        }
+    }
+
+    // 上一个
+    function prevWord() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateCard();
+        }
+    }
+
+    // 【新增功能】允许用户手动重置进度回到第一个词
+    function resetProgress() {
+        if (confirm("确定要重置背词进度，回到第一个单词吗？")) {
+            currentIndex = 0;
+            updateCard();
+        }
+    }
 </script>
+
 </body>
 </html>
