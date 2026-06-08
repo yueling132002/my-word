@@ -68,6 +68,66 @@
   body.dark .wechat-box { background-color: #14532d; border-color: #4ade80; color: #bbf7d0; }
   body.dark .wechat-box strong { color: #4ade80; background: #166534; }
 
+  /* 📝 定制词库样式 */
+  .custom-word-item {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+    border-bottom: 1px solid #f3f4f6; font-size: 14px;
+  }
+  .custom-word-item:last-child { border-bottom: none; }
+  .custom-word-item .cw-zh { font-weight: 600; color: #111827; min-width: 80px; }
+  .custom-word-item .cw-arrow { color: #9ca3af; }
+  .custom-word-item .cw-en { color: #2563eb; flex: 1; }
+  .custom-word-item .cw-hint { font-size: 12px; color: #ea580c; background: #fff7ed; padding: 1px 5px; border-radius: 3px; }
+  .custom-word-item .cw-del {
+    background: none; border: 1px solid #fca5a5; color: #dc2626;
+    padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 0;
+  }
+  .custom-word-item .cw-del:hover { background: #fef2f2; }
+  .custom-empty { text-align: center; color: #9ca3af; padding: 20px; font-size: 14px; }
+  .custom-count { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+  .custom-desc { font-size: 14px; color: #555; margin-bottom: 12px; }
+  .custom-word-item .cw-num { color: #9ca3af; min-width: 24px; font-size: 13px; }
+  .custom-word-item .cw-edit {
+    background: none; border: 1px solid #93c5fd; color: #2563eb;
+    padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 0;
+  }
+  .custom-word-item .cw-edit:hover { background: #eff6ff; }
+  .custom-word-item .cw-save {
+    background: #16a34a; border: none; color: white;
+    padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 0;
+  }
+  .custom-word-item .cw-cancel {
+    background: none; border: 1px solid #d1d5db; color: #6b7280;
+    padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 0;
+  }
+  .custom-word-item .cw-cancel:hover { background: #f3f4f6; }
+  .import-area {
+    margin-top: 10px; padding: 14px; background: #f9fafb;
+    border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px;
+  }
+  .import-area textarea { height: 120px; font-size: 13px; font-family: monospace; margin-top: 8px; }
+  .import-hint { font-size: 13px; color: #6b7280; margin-bottom: 8px; line-height: 1.5; }
+  .import-hint code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  .import-result { margin-top: 8px; font-size: 14px; min-height: 18px; }
+  body.dark .import-area { background: #1f2937; border-color: #374151; }
+  body.dark .import-area textarea { background: #374151; border-color: #4b5563; color: #f9fafb; }
+  body.dark .import-hint { color: #9ca3af; }
+  body.dark .import-hint code { background: #374151; }
+
+  body.dark .custom-word-item { border-bottom-color: #374151; }
+  body.dark .custom-word-item .cw-zh { color: #f9fafb; }
+  body.dark .custom-word-item .cw-en { color: #60a5fa; }
+  body.dark .custom-word-item .cw-hint { background: #431407; border-color: #7c2d12; color: #ffaca3; }
+  body.dark .custom-word-item .cw-del { border-color: #7f1d1d; color: #fca5a5; }
+  body.dark .custom-word-item .cw-del:hover { background: #1f2937; }
+  body.dark .custom-word-item .cw-edit { border-color: #1e40af; color: #93c5fd; }
+  body.dark .custom-word-item .cw-edit:hover { background: #1e293b; }
+  body.dark .custom-word-item .cw-cancel { border-color: #4b5563; color: #9ca3af; }
+  body.dark .custom-word-item .cw-cancel:hover { background: #1f2937; }
+  body.dark .custom-empty { color: #6b7280; }
+  body.dark .custom-desc { color: #9ca3af; }
+  body.dark #customCountDisplay { color: #9ca3af !important; }
+
   /* 🔑 商业授权拦截层样式 */
   #authOverlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -153,6 +213,7 @@
         <option value="33">Day 33</option>
         <option value="34">Day 34</option>
         <option value="35">Day 35</option>
+        <option value="custom">📝 我的词库</option>
       </select>
     </div>
     <div class="meta">当前模式：<span id="dayLabel" style="font-weight: bold; color: #2563eb;">Day 1</span></div>
@@ -187,6 +248,39 @@
   <h3 style="margin-top:0;">📝 单词专属笔记（最多 500 字）</h3>
   <textarea id="notepad" placeholder="在这里记录当前单词的想法、重点、例句……"></textarea>
   <div class="meta" id="noteCount">0 / 500</div>
+</div>
+
+<div class="card" id="customBankCard" style="margin-top:20px;">
+  <h3 style="margin-top:0;">📝 我的定制词库</h3>
+  <p class="custom-desc">
+    自行输入单词，数据仅保存在本设备浏览器中，其他人看不到。
+  </p>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <input type="text" id="customZh" placeholder="中文意思" style="flex:2; min-width:120px; padding:10px; font-size:15px; border-radius:8px; border:1px solid #ccc;">
+    <input type="text" id="customEn" placeholder="英文翻译" style="flex:2; min-width:120px; padding:10px; font-size:15px; border-radius:8px; border:1px solid #ccc;">
+    <input type="text" id="customHint" placeholder="提示/时态备注（可选）" style="flex:1; min-width:120px; padding:10px; font-size:15px; border-radius:8px; border:1px solid #ccc;">
+  </div>
+  <button class="primary" id="addCustomWordBtn" style="margin-top:10px;">➕ 添加到我的词库</button>
+  <div id="customBankFeedback" style="font-size:14px; min-height:20px; margin-top:8px;"></div>
+  <div style="margin-top:10px; display:flex; align-items:center; gap:10px;">
+    <span id="customCountDisplay" style="font-size:14px; color:#6b7280;">共 0 个单词</span>
+    <button class="secondary" id="manageBankBtn" style="margin-top:0; font-size:14px;">📋 管理词库</button>
+    <button class="secondary" id="importBankBtn" style="margin-top:0; font-size:14px;">📥 批量导入</button>
+  </div>
+  <div id="batchImportArea" class="import-area" style="display:none;">
+    <div class="import-hint">
+      从 Excel 复制数据后直接粘贴，或上传 CSV 文件。<br>
+      格式：每行一个单词，<code>中文意思 | 英文翻译 | 提示备注(可选)</code>，中间用 <b>Tab</b> 或 <b>逗号</b> 隔开。
+    </div>
+    <textarea id="importTextarea" placeholder="粘贴 Excel 数据到这里...&#10;比如：&#10;高质量发展	high-quality development&#10;新质生产力	new quality productive forces	名词复数"></textarea>
+    <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <input type="file" id="importCsvFile" accept=".csv,.txt,.tsv" style="font-size:13px;">
+      <button class="primary" id="confirmImportBtn" style="margin-top:0; font-size:14px;">✅ 确认导入</button>
+      <button class="secondary" id="cancelImportBtn" style="margin-top:0; font-size:14px;">取消</button>
+    </div>
+    <div class="import-result" id="importResult"></div>
+  </div>
+  <div id="customWordList" style="display:none; margin-top:12px; font-size:14px; max-height:400px; overflow-y:auto;"></div>
 </div>
 
 <script>
@@ -818,6 +912,244 @@ function clearWordError(en) {
   }
 }
 
+/* ===================== 📝 定制词库管理 ===================== */
+function escHtml(s) { return s.replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function loadCustomBank() {
+  return JSON.parse(localStorage.getItem("catti_my_custom_bank") || "[]");
+}
+function saveCustomBank(words) {
+  localStorage.setItem("catti_my_custom_bank", JSON.stringify(words));
+}
+function updateCustomCount() {
+  const words = loadCustomBank();
+  document.getElementById("customCountDisplay").textContent = `共 ${words.length} 个单词`;
+}
+
+function addCustomWord() {
+  const zh = document.getElementById("customZh").value.trim();
+  const en = document.getElementById("customEn").value.trim();
+  const hint = document.getElementById("customHint").value.trim();
+  const fb = document.getElementById("customBankFeedback");
+  if (!zh || !en) {
+    fb.style.color = "#dc2626";
+    fb.textContent = "❌ 中文意思和英文翻译不能为空！";
+    return;
+  }
+  const words = loadCustomBank();
+  if (words.some(w => normalize(w.zh) === normalize(zh) && normalize(w.en) === normalize(en))) {
+    fb.style.color = "#f59e0b";
+    fb.textContent = "⚠️ 该词条已存在于你的词库中。";
+    return;
+  }
+  const newWord = { zh, en };
+  if (hint) newWord.hint = hint;
+  words.push(newWord);
+  saveCustomBank(words);
+  document.getElementById("customZh").value = "";
+  document.getElementById("customEn").value = "";
+  document.getElementById("customHint").value = "";
+  fb.style.color = "#16a34a";
+  fb.textContent = `✅ 已添加【${zh}】，共 ${words.length} 个单词。`;
+  updateCustomCount();
+  // 如果管理面板正在展示，刷新面板
+  const listEl = document.getElementById("customWordList");
+  if (listEl.style.display !== "none") renderManagePanel();
+}
+
+function removeCustomWord(index) {
+  const words = loadCustomBank();
+  const removed = words[index];
+  if (!removed) return;
+  words.splice(index, 1);
+  saveCustomBank(words);
+  const fb = document.getElementById("customBankFeedback");
+  fb.style.color = "#16a34a";
+  fb.textContent = `🗑️ 已删除【${removed.zh}】，剩余 ${words.length} 个单词。`;
+  updateCustomCount();
+  // 如果当前正在定制词库模式下且该词被删除，同步更新 quiz 状态
+  if (currentBank === "custom") {
+    terms = words;
+    wrongSet.delete(index); delete wrongCount[index];
+    seenSet.delete(index); skippedSet.delete(index);
+    if (currentIndex === index) { currentIndex = -1; }
+    if (words.length === 0) {
+      document.getElementById("quizSection").style.display = "none";
+      document.getElementById("nextDayContainer").innerHTML = "";
+      chineseEl.textContent = "📝 你的词库为空，请先添加单词。";
+      feedbackEl.textContent = "";
+      statsEl.textContent = "";
+      progressEl.textContent = "0 / 0";
+    } else if (currentIndex >= words.length) {
+      pickRandom();
+    }
+    updateStats();
+    saveProgress();
+  }
+  // 如果管理面板正在展示，刷新面板
+  const listEl = document.getElementById("customWordList");
+  if (listEl.style.display !== "none") renderManagePanel();
+}
+
+function toggleManagePanel() {
+  const listEl = document.getElementById("customWordList");
+  const btn = document.getElementById("manageBankBtn");
+  if (listEl.style.display === "none") {
+    renderManagePanel();
+    listEl.style.display = "block";
+    btn.textContent = "📋 收起管理";
+  } else {
+    listEl.style.display = "none";
+    btn.textContent = "📋 管理词库";
+  }
+}
+
+function renderManagePanel() {
+  const container = document.getElementById("customWordList");
+  const words = loadCustomBank();
+  if (words.length === 0) {
+    container.innerHTML = '<div class="custom-empty">词库为空，在上方添加你的第一个单词吧 ✍️</div>';
+    return;
+  }
+  let html = '';
+  words.forEach((w, i) => {
+    html += `<div class="custom-word-item" id="cw-row-${i}">
+      <span class="cw-num">${i + 1}.</span>
+      <span class="cw-zh">${escHtml(w.zh)}</span>
+      <span class="cw-arrow">→</span>
+      <span class="cw-en">${escHtml(w.en)}</span>
+      ${w.hint ? `<span class="cw-hint">${escHtml(w.hint)}</span>` : ""}
+      <button class="cw-edit" onclick="startEditWord(${i})">编辑</button>
+      <button class="cw-del" onclick="removeCustomWord(${i})">删除</button>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function startEditWord(index) {
+  const words = loadCustomBank();
+  const w = words[index];
+  if (!w) return;
+  const row = document.getElementById(`cw-row-${index}`);
+  if (!row) return;
+  row.innerHTML = `
+    <span class="cw-num">${index + 1}.</span>
+    <input type="text" id="editZh_${index}" value="${escHtml(w.zh)}" style="flex:2; padding:6px; font-size:13px; border:1px solid #ccc; border-radius:4px; min-width:80px;">
+    <span class="cw-arrow">→</span>
+    <input type="text" id="editEn_${index}" value="${escHtml(w.en)}" style="flex:2; padding:6px; font-size:13px; border:1px solid #ccc; border-radius:4px; min-width:80px;">
+    <input type="text" id="editHint_${index}" value="${escHtml(w.hint || '')}" placeholder="提示(可选)" style="flex:1; padding:6px; font-size:13px; border:1px solid #ccc; border-radius:4px; min-width:60px;">
+    <button class="cw-save" onclick="saveEditWord(${index})">💾 保存</button>
+    <button class="cw-cancel" onclick="cancelEditWord(${index})">取消</button>
+  `;
+  document.getElementById(`editZh_${index}`).focus();
+}
+
+function saveEditWord(index) {
+  const words = loadCustomBank();
+  if (!words[index]) return;
+  const zh = document.getElementById(`editZh_${index}`).value.trim();
+  const en = document.getElementById(`editEn_${index}`).value.trim();
+  const hint = document.getElementById(`editHint_${index}`).value.trim();
+  if (!zh || !en) {
+    alert("中文意思和英文翻译不能为空！");
+    return;
+  }
+  words[index].zh = zh;
+  words[index].en = en;
+  if (hint) { words[index].hint = hint; } else { delete words[index].hint; }
+  saveCustomBank(words);
+  // 如果当前正在定制词库模式下，同步更新 quiz 中的 terms
+  if (currentBank === "custom") {
+    terms = words;
+    if (currentIndex === index) { loadWordNote(); pickRandom(); }
+  }
+  renderManagePanel();
+  updateCustomCount();
+}
+
+function cancelEditWord(index) {
+  renderManagePanel();
+}
+
+/* ===================== 📥 批量导入（Excel粘贴 / CSV上传） ===================== */
+function toggleImportArea() {
+  const area = document.getElementById("batchImportArea");
+  const btn = document.getElementById("importBankBtn");
+  if (area.style.display === "none") {
+    area.style.display = "block";
+    btn.textContent = "📥 收起导入";
+    document.getElementById("importTextarea").value = "";
+    document.getElementById("importCsvFile").value = "";
+    document.getElementById("importResult").textContent = "";
+  } else {
+    area.style.display = "none";
+    btn.textContent = "📥 批量导入";
+  }
+}
+
+function parseImportLines(rawText) {
+  // 按行分割，自动识别分隔符（Tab 或逗号）
+  const lines = rawText.split(/\r?\n/).filter(line => line.trim());
+  const result = [];
+  for (const line of lines) {
+    // 检测分隔符：优先 Tab，其次逗号
+    const sep = line.includes("\t") ? "\t" : ",";
+    const cols = line.split(sep).map(c => c.trim()).filter(c => c);
+    if (cols.length < 2) continue; // 至少需要中文和英文
+    const word = { zh: cols[0], en: cols[1] };
+    if (cols[2]) word.hint = cols[2];
+    result.push(word);
+  }
+  return result;
+}
+
+function doBatchImport(text) {
+  const fb = document.getElementById("importResult");
+  if (!text.trim()) {
+    fb.style.color = "#dc2626";
+    fb.textContent = "❌ 没有可导入的内容，请先粘贴数据或选择文件。";
+    return;
+  }
+  const parsed = parseImportLines(text);
+  if (parsed.length === 0) {
+    fb.style.color = "#dc2626";
+    fb.textContent = "❌ 未识别到有效数据。请确保每行至少包含「中文」和「英文」，用 Tab 或逗号分隔。";
+    return;
+  }
+
+  const existing = loadCustomBank();
+  let added = 0, skipped = 0;
+  for (const w of parsed) {
+    if (existing.some(e => normalize(e.zh) === normalize(w.zh) && normalize(e.en) === normalize(w.en))) {
+      skipped++;
+    } else {
+      existing.push(w);
+      added++;
+    }
+  }
+  saveCustomBank(existing);
+  updateCustomCount();
+
+  // 如果管理面板正在展示，刷新面板
+  const listEl = document.getElementById("customWordList");
+  if (listEl.style.display !== "none") renderManagePanel();
+
+  // 如果正在定制词库模式下，同步更新 terms
+  if (currentBank === "custom") {
+    terms = existing;
+  }
+
+  fb.style.color = "#16a34a";
+  let msg = `✅ 导入完成！新增 ${added} 个单词`;
+  if (skipped > 0) msg += `，跳过 ${skipped} 个重复`;
+  msg += `，词库共 ${existing.length} 个单词。`;
+  fb.textContent = msg;
+
+  // 清空输入
+  document.getElementById("importTextarea").value = "";
+  document.getElementById("importCsvFile").value = "";
+}
+
 function getHardcorePool() {
   let pool = [];
   let seenEn = new Set();
@@ -829,11 +1161,23 @@ function getHardcorePool() {
       }
     });
   }
+  // 纳入定制词库中的高频错词
+  const customWords = loadCustomBank();
+  customWords.forEach(item => {
+    if (globalErrorLog[item.en] >= 2 && !seenEn.has(item.en)) {
+      pool.push(item);
+      seenEn.add(item.en);
+    }
+  });
   return pool;
 }
 
 /* ===================== 系统状态控制 ===================== */
-let currentBank = Number(localStorage.getItem("catti_bank") || 1);
+let currentBank = (() => {
+  const saved = localStorage.getItem("catti_bank");
+  if (saved === "custom") return "custom";
+  return Number(saved) || 1;
+})();
 let isHardcoreMode = false; 
 
 let terms = []; 
@@ -892,10 +1236,17 @@ function changeBank(bankId) {
   localStorage.setItem("catti_bank", String(currentBank));
 
   document.getElementById("setupMetaArea").style.display = "block";
-  dayLabel.textContent = `Day ${currentBank}`;
-  dayLabel.style.color = "#2563eb";
 
-  terms = wordBanks[currentBank];
+  if (currentBank === "custom") {
+    terms = loadCustomBank();
+    dayLabel.textContent = "📝 我的词库";
+    dayLabel.style.color = "#8b5cf6";
+  } else {
+    terms = wordBanks[currentBank];
+    dayLabel.textContent = `Day ${currentBank}`;
+    dayLabel.style.color = "#2563eb";
+  }
+
   wrongSet = new Set(); wrongCount = {}; seenSet = new Set(); skippedSet = new Set();
   currentIndex = -1; total = 0; correct = 0; wrongMode = false;
   wrongModeBtn.textContent = "错题本模式：关闭";
@@ -903,6 +1254,15 @@ function changeBank(bankId) {
   localStorage.removeItem(`catti_progress_${currentBank}`);
   nextDayContainer.innerHTML = "";
   quizSection.style.display = "block";
+
+  if (currentBank === "custom" && terms.length === 0) {
+    quizSection.style.display = "none";
+    chineseEl.textContent = "📝 你的词库为空，请先在上方「我的定制词库」中添加单词。";
+    feedbackEl.textContent = "";
+    statsEl.textContent = "";
+    progressEl.textContent = "0 / 0";
+    return;
+  }
 
   pickRandom();
   updateStats();
@@ -1117,30 +1477,48 @@ function showNextDayOption() {
 
   if (isHardcoreMode) {
     chineseEl.textContent = "🏆 战栗吧生词！这一组高频硬骨头已被你完全嚼碎！";
+  } else if (currentBank === "custom") {
+    chineseEl.textContent = "🎉 太棒了！你的定制词库已全数消灭！";
   } else {
     chineseEl.textContent = "🎉 太棒了！当前 Day 的所有单词已全数消灭！";
   }
-  
+
   quizSection.style.display = "none";
-  nextDayContainer.innerHTML = ""; 
+  nextDayContainer.innerHTML = "";
 
   if (!isHardcoreMode) {
-    const nextBankId = currentBank + 1;
-    const playBtn = document.createElement("button");
-    playBtn.className = "success";
-    if (wordBanks[nextBankId] !== undefined) {
-      playBtn.textContent = `已背完，点我进入超前点播 Day ${nextBankId} ➔`;
-      playBtn.onclick = () => changeBank(nextBankId);
+    if (currentBank === "custom") {
+      const restartBtn = document.createElement("button");
+      restartBtn.className = "success";
+      restartBtn.textContent = "🔄 重新背诵我的词库";
+      restartBtn.onclick = () => changeBank("custom");
+      nextDayContainer.appendChild(restartBtn);
+
+      const backBtn2 = document.createElement("button");
+      backBtn2.className = "secondary";
+      backBtn2.style.marginTop = "10px";
+      backBtn2.style.width = "100%";
+      backBtn2.textContent = "📚 切换到 Day 1 主线词库";
+      backBtn2.onclick = () => changeBank(1);
+      nextDayContainer.appendChild(backBtn2);
     } else {
-      playBtn.textContent = `🏆 10天总通关！点我重头复习 Day 1 ↺`;
-      playBtn.onclick = () => changeBank(1);
+      const nextBankId = currentBank + 1;
+      const playBtn = document.createElement("button");
+      playBtn.className = "success";
+      if (wordBanks[nextBankId] !== undefined) {
+        playBtn.textContent = `已背完，点我进入超前点播 Day ${nextBankId} ➔`;
+        playBtn.onclick = () => changeBank(nextBankId);
+      } else {
+        playBtn.textContent = `🏆 10天总通关！点我重头复习 Day 1 ↺`;
+        playBtn.onclick = () => changeBank(1);
+      }
+      nextDayContainer.appendChild(playBtn);
     }
-    nextDayContainer.appendChild(playBtn);
   } else {
     const backBtn = document.createElement("button");
     backBtn.className = "success";
     backBtn.textContent = "🔙 骨头啃完了，返回我的日常主线";
-    backBtn.onclick = () => changeBank(currentBank);
+    backBtn.onclick = () => changeBank(currentBank === "custom" ? "custom" : currentBank);
     nextDayContainer.appendChild(backBtn);
   }
 
@@ -1197,18 +1575,34 @@ function exportTable() {
 
 /* ===================== 全局生命周期控制流映射 ===================== */
 function initializeQuizSystem() {
-  terms = wordBanks[currentBank];
+  if (currentBank === "custom") {
+    terms = loadCustomBank();
+    dayLabel.textContent = "📝 我的词库";
+    dayLabel.style.color = "#8b5cf6";
+  } else {
+    terms = wordBanks[currentBank] || [];
+  }
+
+  if (currentBank === "custom" && terms.length === 0) {
+    quizSection.style.display = "none";
+    chineseEl.textContent = "📝 你的词库为空，请先在上方「我的定制词库」中添加单词。";
+    feedbackEl.textContent = "";
+    statsEl.textContent = "";
+    progressEl.textContent = "0 / 0";
+    return;
+  }
+
   if (!loadProgress()) {
-    pickRandom(); 
+    pickRandom();
     updateStats();
   } else {
     let activeWrongs = Array.from(wrongSet).filter(i => !skippedSet.has(i));
     if (seenSet.size >= terms.length && activeWrongs.length === 0) {
-      showNextDayOption(); 
+      showNextDayOption();
       updateStats();
     } else {
       if (currentIndex === -1 || !terms[currentIndex] || skippedSet.has(currentIndex)) {
-        pickRandom(); 
+        pickRandom();
         updateStats();
       } else {
         const currentWord = terms[currentIndex];
@@ -1217,7 +1611,7 @@ function initializeQuizSystem() {
         } else {
           chineseEl.textContent = currentWord.zh;
         }
-        loadWordNote(); 
+        loadWordNote();
         updateStats();
       }
     }
@@ -1226,7 +1620,10 @@ function initializeQuizSystem() {
 
 /* ===================== 事件绑定 ===================== */
 bankSelect.value = String(currentBank);
-bankSelect.addEventListener("change", () => changeBank(Number(bankSelect.value)));
+bankSelect.addEventListener("change", () => {
+  const val = bankSelect.value;
+  changeBank(val === "custom" ? "custom" : Number(val));
+});
 wrongModeBtn.addEventListener("click", () => {
   wrongMode = !wrongMode; wrongModeBtn.textContent = wrongMode ? "错题本模式：开启" : "错题本模式：关闭";
   pickRandom(); updateStats(); saveProgress();
@@ -1299,12 +1696,42 @@ notepad.addEventListener("input", () => {
   if (currentIndex !== -1 && terms[currentIndex]) localStorage.setItem(`note_${terms[currentIndex].en}`, notepad.value);
 });
 
+// 📝 定制词库事件绑定
+document.getElementById("addCustomWordBtn").addEventListener("click", addCustomWord);
+document.getElementById("manageBankBtn").addEventListener("click", toggleManagePanel);
+document.getElementById("importBankBtn").addEventListener("click", toggleImportArea);
+document.getElementById("confirmImportBtn").addEventListener("click", () => {
+  doBatchImport(document.getElementById("importTextarea").value);
+});
+document.getElementById("cancelImportBtn").addEventListener("click", () => {
+  document.getElementById("batchImportArea").style.display = "none";
+  document.getElementById("importBankBtn").textContent = "📥 批量导入";
+});
+document.getElementById("importCsvFile").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById("importTextarea").value = ev.target.result;
+    document.getElementById("importResult").textContent = `📄 已读取文件：${file.name}`;
+  };
+  reader.readAsText(file, "UTF-8");
+});
+["customZh", "customEn", "customHint"].forEach(id => {
+  document.getElementById(id).addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addCustomWord(); }
+  });
+});
+
 // 首次生命周期钩子启动
 if (hasAuth) {
+  updateCustomCount();
   initializeQuizSystem();
 }
 
 /* ===================== 📱 跨设备进度同步 ===================== */
+// 注：gatherAllData() 会全量打包 localStorage（含 catti_my_custom_bank 定制词库），
+// importSyncCode() 会全量还原，实现定制词库与主线进度的无缝同步。
 function gatherAllData() {
   const snapshot = {};
   for (let i = 0; i < localStorage.length; i++) {
