@@ -128,6 +128,75 @@
   body.dark .custom-desc { color: #9ca3af; }
   body.dark #customCountDisplay { color: #9ca3af !important; }
 
+  /* 🤫 摸鱼模式 - 模拟 Word 文档界面 */
+  body.stealth {
+    font-family: "Times New Roman", SimSun, serif;
+    max-width: 680px;
+    background-color: #ffffff;
+    color: #333333;
+  }
+  body.stealth h1 { display: none; }
+  body.stealth .meta { font-size: 11px; color: #999; margin-bottom: 4px; }
+  body.stealth .card {
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    padding: 10px 14px;
+    margin-top: 8px;
+    background: #ffffff;
+    box-shadow: none;
+  }
+  body.stealth .card h3 { font-size: 13px; color: #555; font-weight: normal; margin-top: 0; }
+  body.stealth .chinese { font-size: 14px; font-weight: normal; color: #333; margin-bottom: 8px; }
+  body.stealth .chinese span.hint {
+    font-size: 11px; color: #999; background: none; padding: 0; border: none; margin-left: 4px;
+  }
+  body.stealth input[type="text"],
+  body.stealth textarea {
+    font-size: 13px; padding: 8px 10px; border-radius: 2px; border: 1px solid #ccc;
+    background: #fafafa; color: #333;
+  }
+  body.stealth textarea { height: 80px; font-size: 12px; }
+  body.stealth button {
+    font-size: 12px; padding: 5px 10px; border-radius: 2px;
+    border: 1px solid #bbb; cursor: pointer; margin-top: 4px;
+    background-color: #f5f5f5; color: #555; font-weight: normal;
+  }
+  body.stealth button:hover { background-color: #e8e8e8; }
+  body.stealth button.primary,
+  body.stealth button.success,
+  body.stealth button.warning,
+  body.stealth button.hardcore,
+  body.stealth button.info,
+  body.stealth button.secondary {
+    background-color: #f5f5f5; color: #555; border: 1px solid #bbb;
+    font-weight: normal;
+  }
+  body.stealth .feedback { font-size: 13px; min-height: 20px; }
+  body.stealth .feedback.correct { color: #666; }
+  body.stealth .feedback.wrong { color: #666; }
+  body.stealth .stats { font-size: 11px; color: #999; }
+  body.stealth .answer { font-family: "Times New Roman", serif; background: none; color: #555; font-weight: normal; }
+  body.stealth .wechat-box {
+    background: #fafafa; border: 1px solid #e0e0e0; color: #999; font-size: 12px;
+  }
+  body.stealth .wechat-box strong { color: #666; background: none; font-family: "Times New Roman", serif; }
+  body.stealth #dayLabel { color: #555 !important; }
+  body.stealth .custom-word-item { border-bottom-color: #eee; }
+  body.stealth .custom-word-item .cw-zh { color: #333; font-weight: normal; }
+  body.stealth .custom-word-item .cw-en { color: #555; }
+  body.stealth .custom-word-item .cw-hint { background: none; border: none; color: #999; font-size: 11px; }
+  body.stealth .custom-word-item .cw-del,
+  body.stealth .custom-word-item .cw-edit,
+  body.stealth .custom-word-item .cw-save,
+  body.stealth .custom-word-item .cw-cancel {
+    background: #f5f5f5; color: #666; border: 1px solid #ccc; font-size: 11px;
+  }
+  body.stealth .import-area { background: #fafafa; border: 1px solid #e0e0e0; }
+  body.stealth .import-hint { color: #999; }
+  body.stealth .import-hint code { background: #eee; }
+  body.stealth .auth-card { border-radius: 0; box-shadow: none; border: 1px solid #ccc; }
+  body.stealth .custom-desc { color: #999; }
+
   /* 🔑 商业授权拦截层样式 */
   #authOverlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -172,6 +241,7 @@
 </div>
 
 <button id="themeToggle" class="secondary" style="margin-bottom: 12px;">夜间模式</button>
+<button id="stealthToggle" class="secondary" style="margin-bottom: 12px;">🤫 摸鱼模式</button>
 
 <div class="card">
   <div id="setupMetaArea">
@@ -216,7 +286,7 @@
         <option value="custom">📝 我的词库</option>
       </select>
     </div>
-    <div class="meta">当前模式：<span id="dayLabel" style="font-weight: bold; color: #2563eb;">Day 1</span></div>
+    <div class="meta">当前模式：<span id="dayLabel" style="font-weight: bold; color: #2563eb;">日常通关</span></div>
   </div>
   
   <div class="meta">进度：<span id="progressText">0 / 0</span></div>
@@ -933,13 +1003,13 @@ function addCustomWord() {
   const fb = document.getElementById("customBankFeedback");
   if (!zh || !en) {
     fb.style.color = "#dc2626";
-    fb.textContent = "❌ 中文意思和英文翻译不能为空！";
+    fb.textContent = "中文意思和英文翻译不能为空！";
     return;
   }
   const words = loadCustomBank();
   if (words.some(w => normalize(w.zh) === normalize(zh) && normalize(w.en) === normalize(en))) {
     fb.style.color = "#f59e0b";
-    fb.textContent = "⚠️ 该词条已存在于你的词库中。";
+    fb.textContent = "该词条已存在于你的词库中。";
     return;
   }
   const newWord = { zh, en };
@@ -976,7 +1046,7 @@ function removeCustomWord(index) {
     if (words.length === 0) {
       document.getElementById("quizSection").style.display = "none";
       document.getElementById("nextDayContainer").innerHTML = "";
-      chineseEl.textContent = "📝 你的词库为空，请先添加单词。";
+      chineseEl.textContent = "你的词库为空，请先添加单词。";
       feedbackEl.textContent = "";
       statsEl.textContent = "";
       progressEl.textContent = "0 / 0";
@@ -1038,7 +1108,7 @@ function startEditWord(index) {
     <span class="cw-arrow">→</span>
     <input type="text" id="editEn_${index}" value="${escHtml(w.en)}" style="flex:2; padding:6px; font-size:13px; border:1px solid #ccc; border-radius:4px; min-width:80px;">
     <input type="text" id="editHint_${index}" value="${escHtml(w.hint || '')}" placeholder="提示(可选)" style="flex:1; padding:6px; font-size:13px; border:1px solid #ccc; border-radius:4px; min-width:60px;">
-    <button class="cw-save" onclick="saveEditWord(${index})">💾 保存</button>
+    <button class="cw-save" onclick="saveEditWord(${index})">保存</button>
     <button class="cw-cancel" onclick="cancelEditWord(${index})">取消</button>
   `;
   document.getElementById(`editZh_${index}`).focus();
@@ -1107,13 +1177,13 @@ function doBatchImport(text) {
   const fb = document.getElementById("importResult");
   if (!text.trim()) {
     fb.style.color = "#dc2626";
-    fb.textContent = "❌ 没有可导入的内容，请先粘贴数据或选择文件。";
+    fb.textContent = "没有可导入的内容，请先粘贴数据或选择文件。";
     return;
   }
   const parsed = parseImportLines(text);
   if (parsed.length === 0) {
     fb.style.color = "#dc2626";
-    fb.textContent = "❌ 未识别到有效数据。请确保每行至少包含「中文」和「英文」，用 Tab 或逗号分隔。";
+    fb.textContent = "未识别到有效数据。请确保每行至少包含「中文」和「英文」，用 Tab 或逗号分隔。";
     return;
   }
 
@@ -1239,11 +1309,11 @@ function changeBank(bankId) {
 
   if (currentBank === "custom") {
     terms = loadCustomBank();
-    dayLabel.textContent = "📝 我的词库";
+    dayLabel.textContent = "我的词库";
     dayLabel.style.color = "#8b5cf6";
   } else {
     terms = wordBanks[currentBank];
-    dayLabel.textContent = `Day ${currentBank}`;
+    dayLabel.textContent = "日常通关";
     dayLabel.style.color = "#2563eb";
   }
 
@@ -1257,7 +1327,7 @@ function changeBank(bankId) {
 
   if (currentBank === "custom" && terms.length === 0) {
     quizSection.style.display = "none";
-    chineseEl.textContent = "📝 你的词库为空，请先在上方「我的定制词库」中添加单词。";
+    chineseEl.textContent = "你的词库为空，请先在上方「我的定制词库」中添加单词。";
     feedbackEl.textContent = "";
     statsEl.textContent = "";
     progressEl.textContent = "0 / 0";
@@ -1276,7 +1346,7 @@ function startHardcoreMode() {
 
   isHardcoreMode = true;
   document.getElementById("setupMetaArea").style.display = "block";
-  dayLabel.textContent = "🔥 啃硬骨头特训中";
+  dayLabel.textContent = "啃硬骨头特训中";
   dayLabel.style.color = "#ea580c";
 
   fullPool.sort(() => Math.random() - 0.5);
@@ -1434,7 +1504,7 @@ function submitAnswer() {
       }
     }
 
-    feedbackEl.textContent = "✅ 正确！";
+    feedbackEl.textContent = "正确！";
     feedbackEl.className = "feedback correct";
     updateStats();
     saveProgress();
@@ -1476,11 +1546,11 @@ function showNextDayOption() {
   updateProgress();
 
   if (isHardcoreMode) {
-    chineseEl.textContent = "🏆 战栗吧生词！这一组高频硬骨头已被你完全嚼碎！";
+    chineseEl.textContent = "战栗吧生词！这一组高频硬骨头已被你完全嚼碎！";
   } else if (currentBank === "custom") {
-    chineseEl.textContent = "🎉 太棒了！你的定制词库已全数消灭！";
+    chineseEl.textContent = "太棒了！你的定制词库已全数消灭！";
   } else {
-    chineseEl.textContent = "🎉 太棒了！当前 Day 的所有单词已全数消灭！";
+    chineseEl.textContent = "太棒了！当前 Day 的所有单词已全数消灭！";
   }
 
   quizSection.style.display = "none";
@@ -1490,7 +1560,7 @@ function showNextDayOption() {
     if (currentBank === "custom") {
       const restartBtn = document.createElement("button");
       restartBtn.className = "success";
-      restartBtn.textContent = "🔄 重新背诵我的词库";
+      restartBtn.textContent = stealthText("🔄 重新背诵我的词库");
       restartBtn.onclick = () => changeBank("custom");
       nextDayContainer.appendChild(restartBtn);
 
@@ -1498,7 +1568,7 @@ function showNextDayOption() {
       backBtn2.className = "secondary";
       backBtn2.style.marginTop = "10px";
       backBtn2.style.width = "100%";
-      backBtn2.textContent = "📚 切换到 Day 1 主线词库";
+      backBtn2.textContent = stealthText("📚 切换到 Day 1 主线词库");
       backBtn2.onclick = () => changeBank(1);
       nextDayContainer.appendChild(backBtn2);
     } else {
@@ -1506,10 +1576,10 @@ function showNextDayOption() {
       const playBtn = document.createElement("button");
       playBtn.className = "success";
       if (wordBanks[nextBankId] !== undefined) {
-        playBtn.textContent = `已背完，点我进入超前点播 Day ${nextBankId} ➔`;
+        playBtn.textContent = stealthText(`已背完，点我进入超前点播 Day ${nextBankId} ➔`);
         playBtn.onclick = () => changeBank(nextBankId);
       } else {
-        playBtn.textContent = `🏆 10天总通关！点我重头复习 Day 1 ↺`;
+        playBtn.textContent = stealthText(`🏆 10天总通关！点我重头复习 Day 1 ↺`);
         playBtn.onclick = () => changeBank(1);
       }
       nextDayContainer.appendChild(playBtn);
@@ -1517,7 +1587,7 @@ function showNextDayOption() {
   } else {
     const backBtn = document.createElement("button");
     backBtn.className = "success";
-    backBtn.textContent = "🔙 骨头啃完了，返回我的日常主线";
+    backBtn.textContent = stealthText("🔙 骨头啃完了，返回我的日常主线");
     backBtn.onclick = () => changeBank(currentBank === "custom" ? "custom" : currentBank);
     nextDayContainer.appendChild(backBtn);
   }
@@ -1526,14 +1596,14 @@ function showNextDayOption() {
   if (bonePool.length > 0) {
     const boneBtn = document.createElement("button");
     boneBtn.className = "hardcore";
-    boneBtn.textContent = `🔥 去啃硬骨头！专杀历史高频错词（当前余 ${bonePool.length} 个）`;
+    boneBtn.textContent = stealthText(`🔥 去啃硬骨头！专杀历史高频错词（当前余 ${bonePool.length} 个）`);
     boneBtn.onclick = startHardcoreMode;
     nextDayContainer.appendChild(boneBtn);
   }
 
   const expBtn = document.createElement("button");
   expBtn.className = "info";
-  expBtn.textContent = "📊 导出我刚刚背的这套单词及笔记";
+  expBtn.textContent = stealthText("📊 导出我刚刚背的这套单词及笔记");
   expBtn.onclick = exportTable;
   nextDayContainer.appendChild(expBtn);
 
@@ -1577,7 +1647,7 @@ function exportTable() {
 function initializeQuizSystem() {
   if (currentBank === "custom") {
     terms = loadCustomBank();
-    dayLabel.textContent = "📝 我的词库";
+    dayLabel.textContent = "我的词库";
     dayLabel.style.color = "#8b5cf6";
   } else {
     terms = wordBanks[currentBank] || [];
@@ -1585,7 +1655,7 @@ function initializeQuizSystem() {
 
   if (currentBank === "custom" && terms.length === 0) {
     quizSection.style.display = "none";
-    chineseEl.textContent = "📝 你的词库为空，请先在上方「我的定制词库」中添加单词。";
+    chineseEl.textContent = "你的词库为空，请先在上方「我的定制词库」中添加单词。";
     feedbackEl.textContent = "";
     statsEl.textContent = "";
     progressEl.textContent = "0 / 0";
@@ -1652,7 +1722,71 @@ document.getElementById("exportBtn").addEventListener("click", exportTable);
 
 document.getElementById("themeToggle").addEventListener("click", () => {
   document.body.classList.toggle("dark");
+  document.body.classList.remove("stealth"); // 夜间模式和摸鱼模式互斥
+  if (_stealthOriginals) exitStealth();
   document.getElementById("themeToggle").textContent = document.body.classList.contains("dark") ? "白天模式" : "夜间模式";
+  document.getElementById("stealthToggle").textContent = "🤫 摸鱼模式";
+});
+
+/* ===================== 摸鱼模式：动态去/恢复 emoji ===================== */
+const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{FE0F}\u{3297}\u{3299}\u{3030}\u{303D}\u{00A9}\u{00AE}\u{2122}\u{23CF}\u{24C2}\u{25B6}\u{25C0}\u{260E}\u{2615}\u{263A}\u{2648}-\u{2653}\u{267F}\u{2693}\u{26A1}\u{26BD}\u{26BE}\u{26C4}\u{26CE}\u{26D4}\u{26EA}\u{26F5}\u{26FA}\u{26FD}\u{2702}\u{2705}\u{2728}\u{274C}\u{274E}\u{2753}\u{2757}\u{2795}-\u{2797}\u{27B0}\u{27BF}\u{2934}\u{2935}\u{2B05}-\u{2B07}\u{2B1B}\u{2B1C}\u{2B50}\u{2B55}\u{303D}\u{1F004}\u{1F0CF}\u{1F18E}\u{1F191}-\u{1F19A}\u{1F201}\u{1F21A}\u{1F22F}\u{1F232}-\u{1F23A}\u{1F250}\u{1F251}\u{1F300}-\u{1F9FF}\u{FE0F}\u{200D}]/gu;
+let _stealthOriginals = null;
+let _stealthTextMap = {}; // stripped -> original, 用于恢复动态创建的按钮
+
+function stripEmoji(s) {
+  return s.replace(emojiRegex, '').replace(/\s+/g, ' ').trim();
+}
+
+function enterStealth() {
+  // 保存所有按钮原始文字
+  _stealthOriginals = {};
+  _stealthTextMap = {};
+  document.querySelectorAll('button').forEach((btn, i) => {
+    _stealthOriginals[i] = btn.textContent;
+    btn.textContent = stripEmoji(btn.textContent);
+  });
+}
+
+function stealthText(t) {
+  // 摸鱼模式下自动去 emoji，并记录映射以便退出时恢复
+  if (document.body.classList.contains("stealth")) {
+    var stripped = stripEmoji(t);
+    _stealthTextMap[stripped] = t;
+    return stripped;
+  }
+  return t;
+}
+
+function exitStealth() {
+  if (!_stealthOriginals) return;
+  document.querySelectorAll('button').forEach((btn, i) => {
+    if (_stealthOriginals[i] !== undefined) {
+      btn.textContent = _stealthOriginals[i];
+    } else {
+      // 动态创建的按钮：从 _stealthTextMap 恢复
+      var cur = btn.textContent;
+      if (_stealthTextMap[cur]) {
+        btn.textContent = _stealthTextMap[cur];
+      }
+    }
+  });
+  _stealthOriginals = null;
+  _stealthTextMap = {};
+}
+
+document.getElementById("stealthToggle").addEventListener("click", () => {
+  const wasStealth = document.body.classList.contains("stealth");
+  document.body.classList.toggle("stealth");
+  document.body.classList.remove("dark"); // 夜间模式和摸鱼模式互斥
+  const isStealth = document.body.classList.contains("stealth");
+
+  if (isStealth) {
+    enterStealth();
+  } else {
+    exitStealth();
+  }
+  document.getElementById("stealthToggle").textContent = isStealth ? "学习模式" : "🤫 摸鱼模式";
+  document.getElementById("themeToggle").textContent = "夜间模式";
 });
 
 document.addEventListener("keydown", e => {
@@ -1752,14 +1886,14 @@ function generateSyncCode() {
     output.style.display = "block";
     navigator.clipboard.writeText(encoded).then(() => {
       feedbackEl.style.color = "#16a34a";
-      feedbackEl.textContent = "✅ 口令已生成并自动复制！在其他设备粘贴导入即可。";
+      feedbackEl.textContent = "口令已生成并自动复制！在其他设备粘贴导入即可。";
     }).catch(() => {
       feedbackEl.style.color = "#2563eb";
-      feedbackEl.textContent = "✅ 口令已生成！请手动全选复制上方文本框内容。";
+      feedbackEl.textContent = "口令已生成！请手动全选复制上方文本框内容。";
     });
   } catch(e) {
     feedbackEl.style.color = "#dc2626";
-    feedbackEl.textContent = "❌ 生成失败：" + e.message;
+    feedbackEl.textContent = "生成失败：" + e.message;
   }
 }
 
@@ -1768,7 +1902,7 @@ function importSyncCode() {
   const input = document.getElementById("syncInput").value.trim();
   if (!input) {
     feedbackEl.style.color = "#dc2626";
-    feedbackEl.textContent = "❌ 请先粘贴同步口令！";
+    feedbackEl.textContent = "请先粘贴同步口令！";
     return;
   }
   try {
@@ -1777,7 +1911,7 @@ function importSyncCode() {
     // Validate it looks like our data
     if (!data["catti_sys_activated"]) {
       feedbackEl.style.color = "#dc2626";
-      feedbackEl.textContent = "❌ 口令无效或已损坏，请重新生成。";
+      feedbackEl.textContent = "口令无效或已损坏，请重新生成。";
       return;
     }
     // Confirm before overwriting
@@ -1787,11 +1921,11 @@ function importSyncCode() {
       localStorage.setItem(key, value);
     }
     feedbackEl.style.color = "#16a34a";
-    feedbackEl.textContent = "✅ 进度同步成功！正在重新加载...";
+    feedbackEl.textContent = "进度同步成功！正在重新加载...";
     setTimeout(() => location.reload(), 1000);
   } catch(e) {
     feedbackEl.style.color = "#dc2626";
-    feedbackEl.textContent = "❌ 解析失败，口令可能不完整：" + e.message;
+    feedbackEl.textContent = "解析失败，口令可能不完整：" + e.message;
   }
 }
 </script>
